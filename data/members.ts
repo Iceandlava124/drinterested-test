@@ -26,8 +26,8 @@ export const president: MemberType = {
   id: "president",
   name: "Adil Mukhi",
   role: "President",
-  image: "/adil.png", // Updated image path
-  bio: "I started Dr. Interested after seeing too many youth struggle to navigate med school paths or build core skills like research and public speaking. This platform exists to change that—by giving students the tools and guidance they need to thrive. Beyond this, I have worked with Drs. Alene Toulany and Ashley Vandermorris on applying for a CIHR grant for a SickKids project to develop national guidelines on healthy youth social media use. I also supported the Future of Sport in Canada Commission by signing onto key policy recommendations aimed at making sports safer and more inclusive. I am passionate about turning ideas into impact—and helping youth lead the way. If you want to learn more about me, feel free to check out my website, which I am sure is linked somewhere",
+  image: "/adil.png",
+  bio: "I started Dr. Interested after seeing too many youth struggle to navigate med school paths or build core skills like research and public speaking. This platform exists to change that—by giving students the tools and guidance they need to thrive. Beyond this, I’m a public speaker, youth advocate & changemaker! I lead initiatives that empower tens of thousands of young people, including founding Dr. Interested and contributing to the Play-to-Heal movement. I’ve supported youth-focused research and policy, including a CIHR grant with SickKids for the OPTIMAL Project and recommendations presented to the Future of Sport in Canada Commission. Passionate about mentorship, research, and leadership, I aim to create opportunities for youth to innovate and lead. If you want to learn more about me, feel free to check out my website, which I am sure is linked somewhere",
   socialLinks: {
     website: "https://adilmukhi.vercel.app/",
     linkedin: "https://www.linkedin.com/in/adil-mukhi-6aba27246/",

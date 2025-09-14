@@ -94,9 +94,11 @@ export const advisors: MemberType[] = [
     id: "kate-tucker",
     name: "Kate Tucker",
     role: "Medical Student Advisor",
-    bio: "Kate serves as a medical student advisor, offering insights into medical education pathways and career development.",
-    image: "/logo.png",
-    socialLinks: {},
+    bio: "Kate Tucker (she/her) is a second-year medical student at the Northern Ontario School of Medicine University. Prior to studying medicine, Kate completed a Bachelor of Philosophy in Interdisciplinary Leadership and Masters of Applied Health Services Research at the University of New Brunswick. Her graduate research explored the experiences of older adults without primary care providers and she worked closely with a palliative care research team. Kate greatly enjoys working with high school and undergraduate students with an interest in traditional and untraditional paths to medicine and can often be found on an active outdoor adventure when she is not studying. Kate can be reached by email at ktucker@nosm.ca",
+    image: "/katetucker.png",
+    socialLinks: {
+      linkedin: "https://www.linkedin.com/in/kate-tucker2001/",
+    },
   },
   {
     id: "saleha-jadoon",

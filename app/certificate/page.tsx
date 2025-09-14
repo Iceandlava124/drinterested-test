@@ -7,6 +7,7 @@ import jsPDF from "jspdf";
 const templateMap: Record<string, string> = {
   "abc123": "/certificate-test.png",
   "xyz789": "/certificate-test2.png",
+  "RPC2025participation.a9s": "/certificate-rpc.png",
 };
 
 function CertificateForm() {

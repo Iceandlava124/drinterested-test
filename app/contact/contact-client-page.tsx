@@ -8,19 +8,19 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { 
-  Mail, 
-  MapPin, 
-  Phone, 
-  Instagram, 
-  Linkedin, 
-  ArrowRight, 
-  Youtube, 
-  Spotify, 
-  MessageSquare, 
-  Facebook, 
-  Threads, 
-  Cloud, 
-  Twitter 
+  Mail,
+  MapPin,
+  Phone,
+  Instagram,
+  Linkedin,
+  ArrowRight,
+  Youtube,
+  Music2 as Spotify,
+  MessageSquare,
+  Facebook,
+  AtSign as Threads,
+  Cloud,
+  Twitter
 } from "lucide-react"
 import SeoSchema from "@/components/seo-schema"
 import { motion } from "framer-motion"

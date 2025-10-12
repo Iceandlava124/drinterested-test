@@ -49,7 +49,7 @@ export const vicePresidents: MemberType[] = [
     id: "vp2",
     name: "Kishan Suhirthan",
     role: "Vice President",
-    bio: "Kishan Suhirthan is a Grade 10 Student in the IB Program at Glenforest Secondary School. With a passion for Engineering and Technology, he delivers 100% effort to all his interactions and projects. He is also a proven leader in his skills as a Sergeant in the Royal Air Cadet Program. He shows teamwork and collaboration through his time with Innovire. Proficient in Development and Electrical work, he shows that he is a well rounded individual set for any task at hand.",
+    bio: "Kishan Suhirthan is a Grade 11 student in the IB Program at Glenforest Secondary School with a strong passion for engineering and technology. As a Flight Sergeant in the Royal Canadian Air Cadet Program, he has developed strong leadership and organizational skills. His involvement with Innovire and FRC Team 1325 “Inverse Paradox” highlights his teamwork, creativity, and technical expertise. Proficient in both software development and electrical systems, Kishan is a dedicated and well-rounded individual committed to excellence in every project he undertakes.",
     image: "/kishan-headshot.jpg",
     socialLinks: {
       linkedin: "https://linkedin.com/in/kishansuhirthan",
@@ -84,7 +84,7 @@ export const advisors: MemberType[] = [
     name: "Muhammad Shamoon Umerani",
     role: "Medical Student Advisor",
     bio: "I joined Dr. Interested to help students bridge the gap between ambition and direction—whether it’s navigating research, understanding medicine, or finding where they fit in this field. Having mentored peers, led academic teams, and worked on multiple research projects, I know how much of a difference the right guidance can make. Outside of this, I’m a medical student at Al Faisal University, involved in systematic reviews, peer tutoring, and student leadership. I’m always up to support anyone who’s trying to do something meaningful—just reach out.",
-    image: "/shamoon.jpg",
+    image: "/shamoon.png",
     socialLinks: {
       linkedin: 'https://www.linkedin.com/in/muhammad-shamoon-umerani-8593701b3?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app',
       instagram: 'https://www.instagram.com/shamoon._03?igsh=Yjh1emZmbDE0dDJs&utm_source=qr'
@@ -536,8 +536,8 @@ export const departments: DepartmentType[] = [
       id: "grants-dir",
       name: "Liam Lacey",
       role: "Director of Finance",
-      image: "/logo.png", 
-      bio: "Leading our Finance Department, Sai Raghav Ganesh is a dedicated student and he has a strong interest in finance and economics. Sai Raghav has been involved in various extracurricular activities, including volunteering for community service projects and participating in school clubs. His leadership skills and commitment to excellence make him an invaluable asset to our team.",
+      image: "/logo.png",
+      bio: "Leading our Finance Department, Liam Lacey is a dedicated student and he has a strong interest in finance and economics. Liam has been involved in various extracurricular activities, including volunteering for community service projects and participating in school clubs. His leadership skills and commitment to excellence make him an invaluable asset to our team.",
       socialLinks: {},
     },
     members: [

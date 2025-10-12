@@ -3,10 +3,10 @@ import { generateSeoMetadata } from "@/lib/seo-utils"
 import BlogClientPage from "./BlogClientPage"
 
 export const metadata: Metadata = generateSeoMetadata({
-  title: "Blog | Dr. Interested - Healthcare Education Resources",
+  title: "Blog",
   description:
     "Explore articles on healthcare careers, medical advancements, and educational opportunities for high school students interested in medicine. Find resources for volunteer hours and healthcare education.",
-  url: "https://drinterested.tech/blog",
+  url: "https://www.drinterested.org/blog",
   tags: [
     "healthcare blog",
     "medical education",

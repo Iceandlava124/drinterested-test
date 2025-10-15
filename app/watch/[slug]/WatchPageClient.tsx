@@ -134,9 +134,8 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
                 onClick={togglePlay}
                 playsInline
                 preload="metadata"
-                // optional but helps ensure browser allows playback after click
                 muted={isMuted}
-              />
+              >
                 <source
                   src={
                     webinar.videoPath.startsWith("http")

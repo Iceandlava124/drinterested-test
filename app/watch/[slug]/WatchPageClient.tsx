@@ -112,12 +112,12 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
         {JSON.stringify(structuredData)}
       </Script>
 
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-[#ffffff]">
         {/* Video Player Section */}
-        <div className="relative w-full bg-black">
+        <div className="relative w-full bg-[#f5f1eb]">
           <div className="container mx-auto max-w-7xl">
             <div
-              className="relative aspect-video bg-black group"
+              className="relative aspect-video bg-[#f5f1eb] group"
               onMouseEnter={() => setShowControls(true)}
               onMouseLeave={() => setShowControls(isPlaying ? false : true)}
             >
@@ -144,7 +144,7 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
                 <input
                   type="range"
                   min="0"
-                  max={duration || 0}
+                  max={duration}
                   value={currentTime}
                   onChange={handleSeek}
                   className="w-full h-1 mb-3 bg-white/30 rounded-lg appearance-none cursor-pointer accent-[#4ecdc4]"
@@ -185,14 +185,14 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
         </div>
 
         {/* Content Section */}
-        <div className="bg-[#0a0a0a] text-white">
+        <div className="mt-8 p-6 bg-[#4ecdc4]/10 border border-[#4ecdc4]/30 rounded-lg text-left">
           <div className="container mx-auto max-w-7xl py-8 px-4">
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Main Content */}
               <div className="lg:col-span-2">
-                <h1 className="text-2xl md:text-3xl font-bold mb-4 text-balance">{webinar.title}</h1>
+                <h1 className="text-2xl md:text-3xl font-semibold text-[#405862] mb-2 text-balance">{webinar.title}</h1>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400 mb-6">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-[#405862] mb-6">
                   <span className="flex items-center gap-1">
                     <Eye className="h-4 w-4" />
                     {webinar.views} views
@@ -217,17 +217,17 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
                 </div>
 
                 {/* Description */}
-                <Card className="bg-[#1a1a1a] border-gray-800 mb-6">
+                <Card className="mt-8 p-6 bg-[#4ecdc4]/10 border border-[#4ecdc4]/30 rounded-lg text-left">
                   <CardContent className="p-6">
-                    <p className="text-gray-300 mb-4">{webinar.description}</p>
-                    <p className="text-gray-400 text-sm leading-relaxed">{webinar.longDescription}</p>
+                    <p className="text-[#405862]/80 mb-4">{webinar.description}</p>
+                    <p className="text-[#405862]/60 text-sm leading-relaxed">{webinar.longDescription}</p>
                     {webinar.speaker && (
-                      <p className="text-gray-400 text-sm mt-4">
+                      <p className="text-[#405862]/60 text-sm mt-4">
                         <span className="text-white font-semibold">Speaker:</span> {webinar.speaker}
                       </p>
                     )}
                     {webinar.host && (
-                      <p className="text-gray-400 text-sm">
+                      <p className="text-[#405862]/60 text-sm">
                         <span className="text-white font-semibold">Hosted by:</span> {webinar.host}
                       </p>
                     )}
@@ -238,7 +238,7 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
               {/* Sidebar */}
               <div className="lg:col-span-1">
                 {/* Watch on Other Platforms */}
-                <Card className="bg-[#1a1a1a] border-gray-800 mb-6">
+                <Card className="mt-8 p-6 bg-[#405862]/10 border border-[#405862]/30 rounded-lg text-left">
                   <CardContent className="p-6">
                     <h3 className="text-lg font-bold mb-4">Watch on Other Platforms</h3>
                     <div className="space-y-3">
@@ -269,7 +269,7 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
                 </Card>
 
                 {/* Back to Main Site */}
-                <Card className="bg-[#1a1a1a] border-gray-800">
+                <Card className="mt-8 p-6 bg-[#405862]/10 border border-[#405862]/30 rounded-lg text-left">
                   <CardContent className="p-6">
                     <h3 className="text-lg font-bold mb-4">Explore More</h3>
                     <div className="space-y-3">

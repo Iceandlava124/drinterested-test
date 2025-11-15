@@ -49,7 +49,7 @@ export const pastEvents: EventType[] = [
       "Join us for the Culture & Psychology Conference, hosted in partnership with the Bridge of Culture, on October 18, 2025, at York University’s YSpace (Markham Campus). This exciting event brings together experts, students, and professionals for a day of talks, workshops, and discussions exploring the intersection of culture, psychology, and mental health.",
     image: "/psych-conference.png",
     status: "closed",
-    link: "https://docs.google.com/forms/d/e/1FAIpQLSfzFeuorRRJIkE3FdGiPjGR2IJARzWLguG_O9Xiiblm1m6fmA/viewform",
+    link: "/events/psychology-conference",
   },
   {
     title: "Dr. Interested Webinar Series Recap",

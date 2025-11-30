@@ -48,7 +48,7 @@ export const pastEvents: EventType[] = [
       "Tackle real-world innovation challenges, receive mentorship from industry leaders, and present your ideas to expert judges. Includes case package, light refreshments, networking, and early access perks. Fee: $10. Spots are limited! Learn more: https://www.instagram.com/explore3comp/",
     image: "/ex3-logo.png",
     status: "completed",
-    link: "https://docs.google.com/forms/d/e/1FAIpQLSdl8z70fQGVrXVTAuPGXgOsyB0FyqgN94O0AfXn6qWgBRflMg/viewform",
+    link: "https://www.instagram.com/p/DRk9lNagPR9/",
   },
   {
     title: "First Chess Against Cancer Tournament Complete!",
@@ -77,7 +77,7 @@ export const pastEvents: EventType[] = [
     location: "Virtual",
     description:
       "A recap of the Dr. Interested Webinar Series, featuring discussions on research, pre-med pathways, and health policy. Watch full recordings and explore key takeaways from each session.",
-    image: "/drintthumbnailpathwaystomed.png",
+    image: "/webinarrecap.jpg",
     status: "completed",
     link: "/events/webinar-series-recap",
     featured: true,
@@ -89,9 +89,9 @@ export const pastEvents: EventType[] = [
     location: "Virtual",
     description:
       "Compete with students around the world to pitch a real research idea — no experience needed! Top 3 win mentorship and publication (Dr. Interested covers the $200 DOI cost). All participants receive certificates. Deadline: July 23.",
-    image: "/research-proposal.png",
+    image: "/RCPRecap.png",
     status: "closed",
-    link: "https://forms.gle/cNMth3sUa4d3AhEY8",
+    link: "https://www.instagram.com/p/DO_Peudgriv/",
   },
   {
     title: "Podcast Collaboration with BioMedizone",
@@ -100,7 +100,7 @@ export const pastEvents: EventType[] = [
     description: "Join our exciting podcast collaboration with BioMedizone to explore cutting-edge topics in healthcare and medical innovation. Sign-ups to make the podcast with us are now open!",
     image: "/biomedpodcast.png",
     status: "completed",
-    link: "https://forms.gle/2Dxui6bq1Xdgpz5M8",
+    link: "https://open.spotify.com/show/6SLlRUL6co6fPxckAdrigf",
   },
   {
     title: "Healthcare Media Promotion Event",
@@ -120,7 +120,7 @@ export const pastEvents: EventType[] = [
       "A collaborative podcast with Health Beyond Borders, featuring discussions on youth engagement in global health equity. Check out the recap!",
     image: "/hbbpodcast.png",
     status: "completed",
-    link: "https://open.spotify.com/show/6SLlRUL6co6fPxckAdrigf?utm_medium=share&utm_source=linktree",
+    link: "https://open.spotify.com/show/6SLlRUL6co6fPxckAdrigf",
   },
   {
     title: "The Resilient Minds Project",

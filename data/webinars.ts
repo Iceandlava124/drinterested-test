@@ -19,6 +19,120 @@ export interface Webinar {
 
 export const webinars: Webinar[] = [
   {
+    id: "11",
+    slug: "demystifying-research-papers",
+    title: "Dr. Interested Webinar Series #5: Demystifying Research Papers From Literature Review to Publication",
+    description:
+      "Watch the full recording of our fifth Dr. Interested Webinar, featuring Chinthala Trisha Goud. In this session, Trisha breaks down the research process step by step — from reviewing existing literature to writing and publishing your own paper.",
+    longDescription:
+      "Perfect for students, early researchers, and anyone curious about how academic research really works. Learn the complete research paper process from literature review to publication, including practical tips for writing, formatting, and submitting your work to journals. Hosted by Dr. Interested — empowering youth to explore health, science, and research.",
+    date: "October 10, 2025",
+    views: 19,
+    duration: "25:25",
+    videoPath: "https://hc-cdn.hel1.your-objectstorage.com/s/v3/fe40edc3e5303f47ecc367d2c4db76097d3d4cf8_video1674994875.mp4", // UPDATE THIS PATH
+    thumbnailPath: "/drintthumbnaildemistifiyingreasearch.png", // UPDATE THIS PATH
+    youtubeUrl: "https://youtu.be/8G57EJFUZzE?si=JInq2f-H9BpM1_vb",
+    spotifyUrl: "https://open.spotify.com/episode/4Z4UkUTF7AldXtoyujxzdK?si=86b5ed24a7194b10",
+    tags: ["ResearchPaper", "MedicalResearch", "ScienceEducation", "AcademicWriting", "Publication"],
+    speaker: "Chinthala Trisha Goud",
+    host: "Dr. Interested Webinar Series",
+  },
+  {
+    id: "10",
+    slug: "demystifying-research-papers",
+    title: "Dr. Interested Webinar Series #5: Demystifying Research Papers From Literature Review to Publication",
+    description:
+      "Watch the full recording of our fifth Dr. Interested Webinar, featuring Chinthala Trisha Goud. In this session, Trisha breaks down the research process step by step — from reviewing existing literature to writing and publishing your own paper.",
+    longDescription:
+      "Perfect for students, early researchers, and anyone curious about how academic research really works. Learn the complete research paper process from literature review to publication, including practical tips for writing, formatting, and submitting your work to journals. Hosted by Dr. Interested — empowering youth to explore health, science, and research.",
+    date: "October 10, 2025",
+    views: 19,
+    duration: "25:25",
+    videoPath: "https://hc-cdn.hel1.your-objectstorage.com/s/v3/a80721f9747dd50b8155530af94c0bb9b7fc5813_video1339333384.mp4", // UPDATE THIS PATH
+    thumbnailPath: "/drintthumbnaildemistifiyingreasearch.png", // UPDATE THIS PATH
+    youtubeUrl: "https://youtu.be/8G57EJFUZzE?si=JInq2f-H9BpM1_vb",
+    spotifyUrl: "https://open.spotify.com/episode/4Z4UkUTF7AldXtoyujxzdK?si=86b5ed24a7194b10",
+    tags: ["ResearchPaper", "MedicalResearch", "ScienceEducation", "AcademicWriting", "Publication"],
+    speaker: "Chinthala Trisha Goud",
+    host: "Dr. Interested Webinar Series",
+  },
+  {
+    id: "9",
+    slug: "demystifying-research-papers",
+    title: "Dr. Interested Webinar Series #5: Demystifying Research Papers From Literature Review to Publication",
+    description:
+      "Watch the full recording of our fifth Dr. Interested Webinar, featuring Chinthala Trisha Goud. In this session, Trisha breaks down the research process step by step — from reviewing existing literature to writing and publishing your own paper.",
+    longDescription:
+      "Perfect for students, early researchers, and anyone curious about how academic research really works. Learn the complete research paper process from literature review to publication, including practical tips for writing, formatting, and submitting your work to journals. Hosted by Dr. Interested — empowering youth to explore health, science, and research.",
+    date: "October 10, 2025",
+    views: 19,
+    duration: "25:25",
+    videoPath: "https://hc-cdn.hel1.your-objectstorage.com/s/v3/5d02b16c5ccc37bdb2e60503645bae67af875f2f_video1695640159.mp4", // UPDATE THIS PATH
+    thumbnailPath: "/drintthumbnaildemistifiyingreasearch.png", // UPDATE THIS PATH
+    youtubeUrl: "https://youtu.be/8G57EJFUZzE?si=JInq2f-H9BpM1_vb",
+    spotifyUrl: "https://open.spotify.com/episode/4Z4UkUTF7AldXtoyujxzdK?si=86b5ed24a7194b10",
+    tags: ["ResearchPaper", "MedicalResearch", "ScienceEducation", "AcademicWriting", "Publication"],
+    speaker: "Chinthala Trisha Goud",
+    host: "Dr. Interested Webinar Series",
+  },
+  {
+    id: "8",
+    slug: "demystifying-research-papers",
+    title: "Dr. Interested Webinar Series #5: Demystifying Research Papers From Literature Review to Publication",
+    description:
+      "Watch the full recording of our fifth Dr. Interested Webinar, featuring Chinthala Trisha Goud. In this session, Trisha breaks down the research process step by step — from reviewing existing literature to writing and publishing your own paper.",
+    longDescription:
+      "Perfect for students, early researchers, and anyone curious about how academic research really works. Learn the complete research paper process from literature review to publication, including practical tips for writing, formatting, and submitting your work to journals. Hosted by Dr. Interested — empowering youth to explore health, science, and research.",
+    date: "October 10, 2025",
+    views: 19,
+    duration: "25:25",
+    videoPath: "https://hc-cdn.hel1.your-objectstorage.com/s/v3/cf77a8f2d8f71d8d826135604d13a4696a96a4b4_video1146441928.mp4", // UPDATE THIS PATH
+    thumbnailPath: "/drintthumbnaildemistifiyingreasearch.png", // UPDATE THIS PATH
+    youtubeUrl: "https://youtu.be/8G57EJFUZzE?si=JInq2f-H9BpM1_vb",
+    spotifyUrl: "https://open.spotify.com/episode/4Z4UkUTF7AldXtoyujxzdK?si=86b5ed24a7194b10",
+    tags: ["ResearchPaper", "MedicalResearch", "ScienceEducation", "AcademicWriting", "Publication"],
+    speaker: "Chinthala Trisha Goud",
+    host: "Dr. Interested Webinar Series",
+  },
+  {
+    id: "7",
+    slug: "demystifying-research-papers",
+    title: "Dr. Interested Webinar Series #5: Demystifying Research Papers From Literature Review to Publication",
+    description:
+      "Watch the full recording of our fifth Dr. Interested Webinar, featuring Chinthala Trisha Goud. In this session, Trisha breaks down the research process step by step — from reviewing existing literature to writing and publishing your own paper.",
+    longDescription:
+      "Perfect for students, early researchers, and anyone curious about how academic research really works. Learn the complete research paper process from literature review to publication, including practical tips for writing, formatting, and submitting your work to journals. Hosted by Dr. Interested — empowering youth to explore health, science, and research.",
+    date: "October 10, 2025",
+    views: 19,
+    duration: "25:25",
+    videoPath: "https://hc-cdn.hel1.your-objectstorage.com/s/v3/562b547b3e612e6439e2fe01b6e30107f136fa64_video1171919166.mp4", // UPDATE THIS PATH
+    thumbnailPath: "/drintthumbnaildemistifiyingreasearch.png", // UPDATE THIS PATH
+    youtubeUrl: "https://youtu.be/8G57EJFUZzE?si=JInq2f-H9BpM1_vb",
+    spotifyUrl: "https://open.spotify.com/episode/4Z4UkUTF7AldXtoyujxzdK?si=86b5ed24a7194b10",
+    tags: ["ResearchPaper", "MedicalResearch", "ScienceEducation", "AcademicWriting", "Publication"],
+    speaker: "Chinthala Trisha Goud",
+    host: "Dr. Interested Webinar Series",
+  },
+  {
+    id: "6",
+    slug: "demystifying-research-papers",
+    title: "Dr. Interested Webinar Series #5: Demystifying Research Papers From Literature Review to Publication",
+    description:
+      "Watch the full recording of our fifth Dr. Interested Webinar, featuring Chinthala Trisha Goud. In this session, Trisha breaks down the research process step by step — from reviewing existing literature to writing and publishing your own paper.",
+    longDescription:
+      "Perfect for students, early researchers, and anyone curious about how academic research really works. Learn the complete research paper process from literature review to publication, including practical tips for writing, formatting, and submitting your work to journals. Hosted by Dr. Interested — empowering youth to explore health, science, and research.",
+    date: "October 10, 2025",
+    views: 19,
+    duration: "25:25",
+    videoPath: "https://hc-cdn.hel1.your-objectstorage.com/s/v3/e0528368df72d8d370543862d6dd0523a4e153d7_video1914344293.mp4", // UPDATE THIS PATH
+    thumbnailPath: "/drintthumbnaildemistifiyingreasearch.png", // UPDATE THIS PATH
+    youtubeUrl: "https://youtu.be/8G57EJFUZzE?si=JInq2f-H9BpM1_vb",
+    spotifyUrl: "https://open.spotify.com/episode/4Z4UkUTF7AldXtoyujxzdK?si=86b5ed24a7194b10",
+    tags: ["ResearchPaper", "MedicalResearch", "ScienceEducation", "AcademicWriting", "Publication"],
+    speaker: "Chinthala Trisha Goud",
+    host: "Dr. Interested Webinar Series",
+  },
+  {
     id: "5",
     slug: "demystifying-research-papers",
     title: "Dr. Interested Webinar Series #5: Demystifying Research Papers From Literature Review to Publication",

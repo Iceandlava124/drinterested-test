@@ -38,6 +38,7 @@
     "@radix-ui/react-toggle": "latest",
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
+    "@supabase/supabase-js": "^2.89.0",
     "@sveltejs/kit": "latest",
     "@vercel/analytics": "^1.6.1",
     "autoprefixer": "^10.4.20",

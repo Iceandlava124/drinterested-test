@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
 import type { Webinar } from "@/data/webinars";
@@ -33,19 +33,10 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   // --- Client mount ---
-  useEffect(() => setIsMounted(true), []);
-  if (!isMounted) return null;
+  // useEffect(() => setIsMounted(true), []);
+  // if (!isMounted) return null;
 
-  // --- Handlers ---
-  const handleLoadedMetadata = () => {
-    if (videoRef.current) setDuration(videoRef.current.duration);
-  };
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current) setCurrentTime(videoRef.current.currentTime);
-  };
-
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
@@ -55,6 +46,63 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
       video.pause();
       setIsPlaying(false);
     }
+  }, []);
+
+  useEffect(() => {
+    // setIsMounted(true);
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    const setMetadata = () => {
+      if (!isNaN(video.duration) && video.duration !== Infinity && video.duration > 0) {
+        setDuration(video.duration);
+      }
+
+      const savedTime = localStorage.getItem(`webinar-${webinar.slug}-time`);
+      if (savedTime) {
+        const time = parseFloat(savedTime);
+        if (!isNaN(time) && time < video.duration) {
+          video.currentTime = time;
+          setCurrentTime(time);
+        }
+      }
+    }
+
+    setMetadata();
+
+    video.addEventListener("loadedmetadata", setMetadata);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        e.preventDefault();
+        togglePlay();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    const leavePage = () => {
+      if (videoRef.current) {
+        const time = videoRef.current.currentTime;
+        localStorage.setItem(`webinar-${webinar.slug}-time`, time.toString());
+      }
+    }
+    window.addEventListener("beforeunload", leavePage);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("beforeunload", leavePage);
+      video.removeEventListener("loadedmetadata", setMetadata);
+    };
+  }, [togglePlay, webinar.slug]);
+
+  // --- Handlers ---
+  const handleLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    setDuration(e.currentTarget.duration);
+  };
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) setCurrentTime(videoRef.current.currentTime);
   };
 
   const toggleMute = () => {
@@ -169,7 +217,8 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
                 <input
                   type="range"
                   min={0}
-                  max={duration || 0}
+                  max={duration}
+                  disabled={duration === 0}
                   step="any"
                   value={currentTime}
                   onChange={handleSeek}

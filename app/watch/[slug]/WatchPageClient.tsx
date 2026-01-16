@@ -30,11 +30,7 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [showControls, setShowControls] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // --- Client mount ---
-  // useEffect(() => setIsMounted(true), []);
-  // if (!isMounted) return null;
+  const [playbackRate, setPlaybackRate] = useState(1);
 
   const togglePlay = useCallback(() => {
     const video = videoRef.current;
@@ -77,6 +73,15 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
         if (!isNaN(time) && time < video.duration) {
           video.currentTime = time;
           setCurrentTime(time);
+        }
+      }
+
+      const savedPlaybackRate = localStorage.getItem(`webinar-playbackRate`);
+      if (savedPlaybackRate) {
+        const rate = parseFloat(savedPlaybackRate);
+        if (!isNaN(rate)) {
+          video.playbackRate = rate;
+          setPlaybackRate(rate);
         }
       }
     }
@@ -123,6 +128,14 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
 
     }
   }, [togglePlay, toggleMute])
+
+  const changePlaybackRate = (rate: number) => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = rate;
+      setPlaybackRate(rate);
+      localStorage.setItem(`webinar-playbackRate`, rate.toString());
+    }
+  }
 
   // --- Handlers ---
   const handleLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
@@ -242,7 +255,23 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
                 />
                 <div className="flex items-center justify-between text-white text-sm">
                   <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-row items-center space-x-2">
+                    <div className="bg-black/50 rounded-md px-2 py-1 text-white text-sm">
+                      <label htmlFor="playbackRate" className="mr-2">Speed:</label>
+                      <select
+                        id="playbackRate"
+                        value={playbackRate}
+                        onChange={(e) => changePlaybackRate(parseFloat(e.target.value))}
+                        className="bg-transparent text-white focus:outline-none"
+                      >
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1">1x</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2x</option>
+                      </select>
+                    </div>
                     <button onClick={toggleMute} aria-label={isMuted ? "Unmute" : "Mute"} className="hover:text-[#4ecdc4] transition-colors">
                       {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                     </button>

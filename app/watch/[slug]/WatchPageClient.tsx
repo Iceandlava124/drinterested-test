@@ -48,6 +48,18 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
     }
   }, []);
 
+  const toggleMute = useCallback(() => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  }, [isMuted]);
+
+  const toggleFullscreen = () => {
+    if (!videoRef.current) return;
+    if (document.fullscreenElement) document.exitFullscreen();
+    else videoRef.current.requestFullscreen();
+  };
+
   useEffect(() => {
     // setIsMounted(true);
 
@@ -70,16 +82,7 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
     }
 
     setMetadata();
-
     video.addEventListener("loadedmetadata", setMetadata);
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
-        e.preventDefault();
-        togglePlay();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
 
     const leavePage = () => {
       if (videoRef.current) {
@@ -90,11 +93,36 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
     window.addEventListener("beforeunload", leavePage);
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("beforeunload", leavePage);
       video.removeEventListener("loadedmetadata", setMetadata);
     };
-  }, [togglePlay, webinar.slug]);
+  }, [webinar.slug]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        e.preventDefault();
+        togglePlay();
+      }
+
+      if (e.code === "KeyM") {
+        e.preventDefault();
+        toggleMute();
+      }
+
+      if (e.code === "KeyF") {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+
+    }
+  }, [togglePlay, toggleMute])
 
   // --- Handlers ---
   const handleLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
@@ -103,12 +131,6 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
 
   const handleTimeUpdate = () => {
     if (videoRef.current) setCurrentTime(videoRef.current.currentTime);
-  };
-
-  const toggleMute = () => {
-    if (!videoRef.current) return;
-    videoRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,12 +144,6 @@ export default function WatchPageClient({ webinar }: WatchPageClientProps) {
     const time = parseFloat(e.target.value);
     if (videoRef.current) videoRef.current.currentTime = time;
     setCurrentTime(time);
-  };
-
-  const toggleFullscreen = () => {
-    if (!videoRef.current) return;
-    if (document.fullscreenElement) document.exitFullscreen();
-    else videoRef.current.requestFullscreen();
   };
 
   const formatTime = (time: number) => {

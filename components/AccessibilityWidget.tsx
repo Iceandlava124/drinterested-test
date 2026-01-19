@@ -1,54 +1,54 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { X, Globe, RotateCcw, ZoomIn, MousePointer, MessageSquare, ImageOff, Type, Circle, Sun, Moon, Droplet, Minus, Link } from 'lucide-react';
 
+const DEFAULT_SETTINGS = {
+  textSize: 100,
+  cursorSize: 100,
+  hideImages: false,
+  invertColors: false,
+  darkMode: false,
+  grayscale: false,
+  contrast: false,
+  readingGuide: false,
+  highlightLinks: false
+};
+
 const AccessibilityWidget = () => {
+  const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-
-useEffect(() => {
-  setPosition({
-    x: window.innerWidth - 80,
-    y: window.innerHeight - 80
-  });
-}, []);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  
-  // Load settings from localStorage
-  const loadSettings = () => {
-    const saved = localStorage.getItem('accessibilitySettings');
-    return saved ? JSON.parse(saved) : {
-      textSize: 100,
-      cursorSize: 100,
-      tooltips: false,
-      hideImages: false,
-      readableFont: false,
-      invertColors: false,
-      brightness: 100,
-      contrast: 100,
-      grayscale: 0,
-      saturation: 100,
-      readingGuide: false,
-      highlightLinks: false
-    };
-  };
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
 
-  const [settings, setSettings] = useState(loadSettings);
+  // Use useLayoutEffect to set isMounted BEFORE any rendering
+  useLayoutEffect(() => {
+    setIsMounted(true);
+    // Set initial position here, before the component fully renders
+    setPosition({
+      x: window.innerWidth - 80,
+      y: window.innerHeight - 80
+    });
+  }, []);
 
-  // Save settings to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('accessibilitySettings', JSON.stringify(settings));
-    applySettings();
-  }, [settings]);
+    if (!isMounted) return;
 
-  const applySettings = () => {
+    const saved = localStorage.getItem('accessibilitySettings');
+    const loadedSettings = saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+    setSettings(loadedSettings);
+  }, [isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
+    localStorage.setItem('accessibilitySettings', JSON.stringify(settings));
+
     const root = document.documentElement;
-    
-    // Text Size (adjustable 90-130%)
+
     root.style.fontSize = `${settings.textSize}%`;
 
-    // Cursor Size (adjustable 100-150%)
     const cursorScale = settings.cursorSize / 100;
     const cursorSize = Math.round(24 * cursorScale);
     if (settings.cursorSize !== 100) {
@@ -57,66 +57,74 @@ useEffect(() => {
       root.style.cursor = '';
     }
 
-    // Hide Images
     const images = document.querySelectorAll('img');
     images.forEach(img => {
-      if (settings.hideImages) {
-        img.style.opacity = '0';
-      } else {
-        img.style.opacity = '';
-      }
+      img.style.opacity = settings.hideImages ? '0' : '';
     });
 
-    // Readable Font
-    if (settings.readableFont) {
-      root.style.fontFamily = 'Arial, sans-serif';
-    } else {
-      root.style.fontFamily = '';
-    }
-
-    // Color filters
     let filters = [];
+    if (settings.invertColors) filters.push('invert(1)');
+    if (settings.grayscale) filters.push('grayscale(100%)');
+    if (settings.contrast) filters.push('contrast(115%)');
     
-    if (settings.invertColors) {
-      filters.push('invert(1)');
-    }
-    
-    if (settings.brightness !== 100) {
-      filters.push(`brightness(${settings.brightness}%)`);
-    }
-    
-    if (settings.contrast !== 100) {
-      filters.push(`contrast(${settings.contrast}%)`);
-    }
-    
-    if (settings.grayscale !== 0) {
-      filters.push(`grayscale(${settings.grayscale}%)`);
-    }
-    
-    if (settings.saturation !== 100) {
-      filters.push(`saturate(${settings.saturation}%)`);
-    }
-
     root.style.filter = filters.join(' ');
 
-    // Highlight Links
-    const links = document.querySelectorAll('a');
-    links.forEach(link => {
-      if (settings.highlightLinks) {
-        link.style.backgroundColor = 'yellow';
-        link.style.color = 'black';
-        link.style.textDecoration = 'underline';
-        link.style.fontWeight = 'bold';
+    const mediaElements = document.querySelectorAll('img, video, iframe');
+    mediaElements.forEach(el => {
+      if (filters.length > 0) {
+        let counterFilters = [];
+        if (settings.invertColors) counterFilters.push('invert(1)');
+        if (settings.grayscale) counterFilters.push('grayscale(0)');
+        if (settings.contrast) counterFilters.push('contrast(87%)');
+        el.style.filter = counterFilters.join(' ');
       } else {
-        link.style.backgroundColor = '';
-        link.style.color = '';
-        link.style.textDecoration = '';
-        link.style.fontWeight = '';
+        el.style.filter = '';
       }
     });
-  };
+
+    const updateLinks = () => {
+      const allLinks = document.querySelectorAll('a');
+      allLinks.forEach(link => {
+        if (link.closest('.accessibility-menu') || link.closest('.accessibility-button')) {
+          return;
+        }
+
+        if (settings.highlightLinks) {
+          link.style.setProperty('background-color', 'yellow', 'important');
+          link.style.setProperty('color', 'black', 'important');
+          link.style.setProperty('text-decoration', 'underline', 'important');
+          link.style.setProperty('font-weight', 'bold', 'important');
+        } else {
+          link.style.removeProperty('background-color');
+          link.style.removeProperty('color');
+          link.style.removeProperty('text-decoration');
+          link.style.removeProperty('font-weight');
+        }
+      });
+    };
+
+    updateLinks();
+
+    const observer = new MutationObserver(() => {
+      updateLinks();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'style']
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [settings, isMounted]);
 
   const toggleSetting = (key) => {
+    // TODO: Dark Mode functionality to be implemented
+    if (key === 'darkMode') return;
+    
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
@@ -125,25 +133,10 @@ useEffect(() => {
   };
 
   const resetAll = () => {
-    const defaultSettings = {
-      textSize: 100,
-      cursorSize: 100,
-      tooltips: false,
-      hideImages: false,
-      readableFont: false,
-      invertColors: false,
-      brightness: 100,
-      contrast: 100,
-      grayscale: 0,
-      saturation: 100,
-      readingGuide: false,
-      highlightLinks: false
-    };
-    setSettings(defaultSettings);
-    localStorage.setItem('accessibilitySettings', JSON.stringify(defaultSettings));
+    setSettings(DEFAULT_SETTINGS);
+    localStorage.setItem('accessibilitySettings', JSON.stringify(DEFAULT_SETTINGS));
   };
 
-  // Dragging logic
   const buttonRef = useRef(null);
 
   const handleMouseDown = (e) => {
@@ -173,14 +166,13 @@ useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
     }
-  }, [isDragging, dragOffset]);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset, position]);
 
-  // Reading Guide
   const [guideY, setGuideY] = useState(0);
 
   useEffect(() => {
@@ -196,9 +188,12 @@ useEffect(() => {
     }
   }, [settings.readingGuide]);
 
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <>
-      {/* Reading Guide Overlay */}
       {settings.readingGuide && (
         <div style={{
           position: 'fixed',
@@ -238,7 +233,6 @@ useEffect(() => {
         </div>
       )}
 
-      {/* Accessibility Button */}
       <div
         ref={buttonRef}
         className="accessibility-button"
@@ -262,7 +256,6 @@ useEffect(() => {
           </svg>
         </button>
 
-        {/* Accessibility Menu */}
         {isOpen && (
           <div
             className="accessibility-menu"
@@ -281,14 +274,9 @@ useEffect(() => {
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div style={{ backgroundColor: '#405862' }} className="text-[#f1ece7] p-4 flex items-center justify-between rounded-t-lg">
               <h2 className="text-lg font-semibold">Accessibility Options</h2>
               <div className="flex items-center gap-2">
-                <button className="p-1 hover:bg-[#334650] rounded" aria-label="Language">
-                  <Globe size={20} />
-                </button>
-                <span className="text-sm">EN</span>
                 <button onClick={resetAll} className="p-1 hover:bg-[#334650] rounded" aria-label="Reset All">
                   <RotateCcw size={20} />
                 </button>
@@ -298,7 +286,6 @@ useEffect(() => {
               </div>
             </div>
 
-            {/* Content Section */}
             <div className="p-4">
               <h3 className="text-gray-500 text-sm mb-3">Content</h3>
               <div className="grid grid-cols-3 gap-3 mb-6">
@@ -335,14 +322,6 @@ useEffect(() => {
                   </div>
                 </button>
                 <button
-                  onClick={() => toggleSetting('tooltips')}
-                  className={`p-4 rounded-lg border-2 transition-all ${settings.tooltips ? 'bg-[#405862] text-[#f1ece7] border-[#405862]' : 'bg-gray-50 border-gray-200 hover:border-[#405862]'}`}
-                  style={settings.tooltips ? { backgroundColor: '#405862', borderColor: '#405862' } : {}}
-                >
-                  <MessageSquare className="mx-auto mb-2" size={24} />
-                  <div className="text-sm font-medium">Tooltips</div>
-                </button>
-                <button
                   onClick={() => toggleSetting('hideImages')}
                   className={`p-4 rounded-lg border-2 transition-all ${settings.hideImages ? 'bg-[#405862] text-[#f1ece7] border-[#405862]' : 'bg-gray-50 border-gray-200 hover:border-[#405862]'}`}
                   style={settings.hideImages ? { backgroundColor: '#405862', borderColor: '#405862' } : {}}
@@ -350,17 +329,8 @@ useEffect(() => {
                   <ImageOff className="mx-auto mb-2" size={24} />
                   <div className="text-sm font-medium">Hide Images</div>
                 </button>
-                <button
-                  onClick={() => toggleSetting('readableFont')}
-                  className={`p-4 rounded-lg border-2 transition-all ${settings.readableFont ? 'bg-[#405862] text-[#f1ece7] border-[#405862]' : 'bg-gray-50 border-gray-200 hover:border-[#405862]'}`}
-                  style={settings.readableFont ? { backgroundColor: '#405862', borderColor: '#405862' } : {}}
-                >
-                  <Type className="mx-auto mb-2" size={24} />
-                  <div className="text-sm font-medium">Readable Font</div>
-                </button>
               </div>
 
-              {/* Colors Section */}
               <h3 className="text-gray-500 text-sm mb-3">Colors</h3>
               <div className="grid grid-cols-3 gap-3 mb-6">
                 <button
@@ -377,75 +347,35 @@ useEffect(() => {
                   <div className="text-sm font-medium">Invert Colors</div>
                 </button>
                 <button
-                  onClick={() => {
-                    if (settings.brightness === 100) adjustValue('brightness', 90);
-                    else if (settings.brightness === 90) adjustValue('brightness', 110);
-                    else adjustValue('brightness', 100);
-                  }}
-                  className={`p-4 rounded-lg border-2 transition-all w-full ${settings.brightness !== 100 ? 'bg-[#405862] text-[#f1ece7] border-[#405862]' : 'bg-gray-50 border-gray-200 hover:border-[#405862]'}`}
-                  style={settings.brightness !== 100 ? { backgroundColor: '#405862', borderColor: '#405862' } : {}}
-                >
-                  <Sun className="mx-auto mb-2" size={24} />
-                  <div className="text-sm font-medium mb-2">Brightness</div>
-                  <div className="flex gap-1 justify-center pointer-events-none">
-                    <div className={`h-2 w-8 rounded-sm transition-all ${settings.brightness === 90 ? 'bg-white' : 'bg-gray-300'}`} />
-                    <div className={`h-2 w-8 rounded-sm transition-all ${settings.brightness === 110 ? 'bg-white' : 'bg-gray-300'}`} />
-                  </div>
-                </button>
-                <button
-                  onClick={() => {
-                    if (settings.contrast === 100) adjustValue('contrast', 90);
-                    else if (settings.contrast === 90) adjustValue('contrast', 115);
-                    else adjustValue('contrast', 100);
-                  }}
-                  className={`p-4 rounded-lg border-2 transition-all w-full ${settings.contrast !== 100 ? 'bg-[#405862] text-[#f1ece7] border-[#405862]' : 'bg-gray-50 border-gray-200 hover:border-[#405862]'}`}
-                  style={settings.contrast !== 100 ? { backgroundColor: '#405862', borderColor: '#405862' } : {}}
+                  onClick={() => toggleSetting('darkMode')}
+                  className={`p-4 rounded-lg border-2 transition-all bg-gray-50 border-gray-200 cursor-not-allowed opacity-50`}
+                  title="Dark Mode functionality coming soon"
                 >
                   <Moon className="mx-auto mb-2" size={24} />
-                  <div className="text-sm font-medium mb-2">Contrast</div>
-                  <div className="flex gap-1 justify-center pointer-events-none">
-                    <div className={`h-2 w-8 rounded-sm transition-all ${settings.contrast === 90 ? 'bg-white' : 'bg-gray-300'}`} />
-                    <div className={`h-2 w-8 rounded-sm transition-all ${settings.contrast === 115 ? 'bg-white' : 'bg-gray-300'}`} />
-                  </div>
+                  <div className="text-sm font-medium">Dark Mode</div>
+                  <div className="text-xs text-gray-400 mt-1">Coming Soon</div>
                 </button>
                 <button
-                  onClick={() => {
-                    if (settings.grayscale === 0) adjustValue('grayscale', 50);
-                    else if (settings.grayscale === 50) adjustValue('grayscale', 100);
-                    else adjustValue('grayscale', 0);
-                  }}
-                  className={`p-4 rounded-lg border-2 transition-all w-full ${settings.grayscale > 0 ? 'bg-[#405862] text-[#f1ece7] border-[#405862]' : 'bg-gray-50 border-gray-200 hover:border-[#405862]'}`}
-                  style={settings.grayscale > 0 ? { backgroundColor: '#405862', borderColor: '#405862' } : {}}
+                  onClick={() => toggleSetting('grayscale')}
+                  className={`p-4 rounded-lg border-2 transition-all ${settings.grayscale ? 'bg-[#405862] text-[#f1ece7] border-[#405862]' : 'bg-gray-50 border-gray-200 hover:border-[#405862]'}`}
+                  style={settings.grayscale ? { backgroundColor: '#405862', borderColor: '#405862' } : {}}
                 >
                   <svg className="mx-auto mb-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="9" cy="12" r="6"/>
                     <circle cx="15" cy="12" r="6"/>
                   </svg>
-                  <div className="text-sm font-medium mb-2">Grayscale</div>
-                  <div className="flex gap-1 justify-center pointer-events-none">
-                    <div className={`h-2 w-8 rounded-sm transition-all ${settings.grayscale >= 50 ? 'bg-white' : 'bg-gray-300'}`} />
-                    <div className={`h-2 w-8 rounded-sm transition-all ${settings.grayscale === 100 ? 'bg-white' : 'bg-gray-300'}`} />
-                  </div>
+                  <div className="text-sm font-medium">Grayscale</div>
                 </button>
                 <button
-                  onClick={() => {
-                    if (settings.saturation === 100) adjustValue('saturation', 75);
-                    else if (settings.saturation === 75) adjustValue('saturation', 125);
-                    else adjustValue('saturation', 100);
-                  }}
-                  className={`p-4 rounded-lg border-2 transition-all w-full ${settings.saturation !== 100 ? 'bg-[#405862] text-[#f1ece7] border-[#405862]' : 'bg-gray-50 border-gray-200 hover:border-[#405862]'}`}
-                  style={settings.saturation !== 100 ? { backgroundColor: '#405862', borderColor: '#405862' } : {}}
+                  onClick={() => toggleSetting('contrast')}
+                  className={`p-4 rounded-lg border-2 transition-all ${settings.contrast ? 'bg-[#405862] text-[#f1ece7] border-[#405862]' : 'bg-gray-50 border-gray-200 hover:border-[#405862]'}`}
+                  style={settings.contrast ? { backgroundColor: '#405862', borderColor: '#405862' } : {}}
                 >
-                  <Droplet className="mx-auto mb-2" size={24} />
-                  <div className="text-sm font-medium mb-2">Saturation</div>
-                  <div className="flex gap-1 justify-center pointer-events-none">
-                    <div className={`h-2 w-8 rounded-sm transition-all ${settings.saturation === 75 ? 'bg-white' : 'bg-gray-300'}`} />
-                    <div className={`h-2 w-8 rounded-sm transition-all ${settings.saturation === 125 ? 'bg-white' : 'bg-gray-300'}`} />
-                  </div>
+                  <Sun className="mx-auto mb-2" size={24} />
+                  <div className="text-sm font-medium">Contrast</div>
                 </button>
               </div>
 
-              {/* Navigation Section */}
               <h3 className="text-gray-500 text-sm mb-3">Navigation</h3>
               <div className="grid grid-cols-2 gap-3">
                 <button

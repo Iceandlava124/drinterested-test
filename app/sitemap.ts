@@ -2,12 +2,7 @@ import type { MetadataRoute } from "next"
 import { blogPosts, blogTopics } from "@/data/blog"
 import { webinars } from "@/data/webinars"
 import {
-  executiveDirector,
-  deputyexecdir,
-  executiveAssistants,
-  advisors,
-  departments,
-  ambassadors,
+  getAllMembers,
 } from "@/data/members"
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -154,18 +149,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
-  const teamPages: MetadataRoute.Sitemap = [
-    executiveDirector,
-    ...deputyexecdir,
-    ...executiveAssistants,
-    ...advisors,
-    ...departments.flatMap((dept) => [
-      ...(Array.isArray(dept.director) ? dept.director : [dept.director]),
-      ...(dept.deputyDirectors ?? []),
-      ...dept.coordinators,
-    ]),
-    ...ambassadors,
-  ].map((member) => ({
+  const teamPages: MetadataRoute.Sitemap = getAllMembers().map((member) => ({
     url: `${baseUrl}/team/${member.id}`,
     lastModified: currentDate,
     changeFrequency: "monthly" as const,

@@ -1059,3 +1059,26 @@ export const ambassadors: MemberType[] = [
     bio: placeholderBio,
   },
 ]
+
+const getDepartmentMembers = (department: DepartmentType): MemberType[] => {
+  const directors = Array.isArray(department.director)
+    ? department.director
+    : [department.director]
+  return [
+    ...directors,
+    ...(department.deputyDirectors ?? []),
+    ...department.coordinators,
+  ]
+}
+
+export const getAllMembers = (): MemberType[] => [
+  executiveDirector,
+  ...deputyexecdir,
+  ...executiveAssistants,
+  ...advisors,
+  ...departments.flatMap((department) => getDepartmentMembers(department)),
+  ...ambassadors,
+]
+
+export const getMemberById = (id: string) =>
+  getAllMembers().find((member) => member.id === id)

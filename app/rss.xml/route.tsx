@@ -1,12 +1,7 @@
 import { blogPosts } from "@/data/blog"
 import { webinars } from "@/data/webinars"
 import {
-  executiveDirector,
-  deputyexecdir,
-  executiveAssistants,
-  advisors,
-  departments,
-  ambassadors,
+  getAllMembers,
   MemberType,
 } from "@/data/members"
 import { upcomingEvents, pastEvents, EventType } from "@/data/events"
@@ -282,18 +277,7 @@ export async function GET() {
   })
 
 // ===== Add Members =====
-  const allMembers: MemberType[] = [
-    executiveDirector,
-    ...deputyexecdir,
-    ...executiveAssistants,
-    ...advisors,
-    ...departments.flatMap((dept) => [
-      ...(Array.isArray(dept.director) ? dept.director : [dept.director]),
-      ...(dept.deputyDirectors ?? []),
-      ...dept.coordinators,
-    ]),
-    ...ambassadors,
-  ]
+  const allMembers: MemberType[] = getAllMembers()
 
   allMembers.forEach((member) => {
     const memberUrl = `${baseUrl}/team/${member.id}`

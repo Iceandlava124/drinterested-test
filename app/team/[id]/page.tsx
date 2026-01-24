@@ -3,32 +3,12 @@ import { notFound } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import {
-  executiveDirector,
-  deputyexecdir,
-  executiveAssistants,
-  advisors,
-  departments,
-  ambassadors,
-  MemberType,
+  getAllMembers,
+  getMemberById,
 } from "@/data/members"
+import SeoSchema from "@/components/seo-schema"
 
 const baseUrl = "https://www.drinterested.org"
-
-const getAllMembers = (): MemberType[] => [
-  executiveDirector,
-  ...deputyexecdir,
-  ...executiveAssistants,
-  ...advisors,
-  ...departments.flatMap((dept) => [
-    ...(Array.isArray(dept.director) ? dept.director : [dept.director]),
-    ...(dept.deputyDirectors ?? []),
-    ...dept.coordinators,
-  ]),
-  ...ambassadors,
-]
-
-const getMemberById = (id: string) =>
-  getAllMembers().find((member) => member.id === id)
 
 const truncate = (text: string, maxLength = 160) =>
   text.length > maxLength ? `${text.slice(0, maxLength - 3)}...` : text
@@ -58,6 +38,7 @@ export async function generateMetadata({
   return {
     title: `${member.name} | ${member.role}`,
     description,
+    keywords: [member.name, member.role, "Dr. Interested"],
     openGraph: {
       title: `${member.name} | ${member.role}`,
       description,
@@ -73,6 +54,13 @@ export async function generateMetadata({
         },
       ],
     },
+    twitter: {
+      card: "summary_large_image",
+      title: `${member.name} | ${member.role}`,
+      description,
+      images: [imageUrl],
+      creator: "@DrInterested",
+    },
     alternates: {
       canonical: url,
     },
@@ -86,8 +74,41 @@ export default function MemberPage({ params }: { params: { id: string } }) {
     notFound()
   }
 
+  const sameAs = member.socialLinks
+    ? Object.values(member.socialLinks).filter(Boolean)
+    : []
+  const memberUrl = `${baseUrl}/team/${member.id}`
+  const memberImage = `${baseUrl}${member.image}`
+
+  const personSchema = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": `${memberUrl}#person`,
+    name: member.name,
+    jobTitle: member.role,
+    image: memberImage,
+    url: memberUrl,
+    description: member.bio,
+    affiliation: {
+      "@type": "Organization",
+      name: "Dr. Interested",
+      url: baseUrl,
+    },
+    worksFor: {
+      "@type": "Organization",
+      name: "Dr. Interested",
+      url: baseUrl,
+    },
+    sameAs: sameAs.length ? sameAs : undefined,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": memberUrl,
+    },
+  }
+
   return (
     <div>
+      <SeoSchema schema={personSchema} />
       <section className="hero-section bg-[#f5f1eb] py-10 md:py-16">
         <div className="container">
           <div className="grid gap-6 md:grid-cols-3 items-center">

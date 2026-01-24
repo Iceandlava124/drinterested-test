@@ -1,12 +1,7 @@
 import type { Metadata } from "next"
 import MembersClient from "./MembersClient"
 import {
-  executiveDirector,
-  deputyexecdir,
-  executiveAssistants,
-  advisors,
-  departments,
-  ambassadors,
+  getAllMembers,
 } from "@/data/members"
 
 export const metadata: Metadata = {
@@ -43,18 +38,7 @@ export const metadata: Metadata = {
 
 export default function MembersPage() {
   const baseUrl = "https://www.drinterested.org"
-  const allMembers = [
-    executiveDirector,
-    ...deputyexecdir,
-    ...executiveAssistants,
-    ...advisors,
-    ...departments.flatMap((dept) => [
-      ...(Array.isArray(dept.director) ? dept.director : [dept.director]),
-      ...(dept.deputyDirectors ?? []),
-      ...dept.coordinators,
-    ]),
-    ...ambassadors,
-  ]
+  const allMembers = getAllMembers()
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -62,12 +46,15 @@ export default function MembersPage() {
       const sameAs = member.socialLinks
         ? Object.values(member.socialLinks).filter(Boolean)
         : []
+      const url = `${baseUrl}/team/${member.id}`
 
       return {
         "@type": "Person",
+        "@id": `${url}#person`,
         name: member.name,
         jobTitle: member.role,
         image: `${baseUrl}${member.image}`,
+        url,
         affiliation: {
           "@type": "Organization",
           name: "Dr. Interested",

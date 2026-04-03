@@ -120,7 +120,7 @@ export const pastEvents: EventType[] = [
     location: "Virtual",
     description:
       "Dr. Interested partnered with ColdMatchAI to host this guest speaker webinar focused on the value of learning and conducting scientific research. Participants explored how to find research related opportunities through strategic cold emailing, with actionable steps explained during the session. Attendees also learned about ways to explore medical career pathways through mentorship, research competitions, webinars, and speaker talks.",
-    image: "/PowerOfOppertinuty.png",
+    image: "/PowerOfOppertinuty.jpg",
     status: "completed",
     link: "https://www.instagram.com/p/DU0_hUdjhNP/?hl=en&img_index=1",
   },

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supaBaseclient"
+import { supabase } from "@/lib/supabase-client"
 import { Loader2 } from "lucide-react"
 
 const ADMIN_PASSWORD = "Dr.Interested@0123.HaroonRyan!"

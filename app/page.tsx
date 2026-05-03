@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import ClientPage from "./client-page"
+import ClientPage from "@/components/home/client-page"
 
 export const metadata: Metadata = {
   title: "Dr. Interested - Inspiring Future Healthcare Leaders",

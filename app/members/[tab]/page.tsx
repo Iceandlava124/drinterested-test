@@ -1,4 +1,4 @@
-import MembersClient from '../MembersClient'  // relative import works fine
+import MembersClient from "@/components/members/MembersClient"  // relative import works fine
 
 interface PageProps {
   params: { tab: string }

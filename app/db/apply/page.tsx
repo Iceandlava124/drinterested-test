@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { supabase } from "@/lib/supaBaseclient"
+import { supabase } from "@/lib/supabase-client"
 import { Button } from "@/components/ui/button"
 
 export default function DbApplyPage() {
@@ -15,12 +15,49 @@ export default function DbApplyPage() {
 
     const formData = new FormData(e.currentTarget)
     
+    // Handle image upload first
+    const imageFile = formData.get("image") as File
+    if (!imageFile || imageFile.size === 0) {
+      setMessage({ type: "error", text: "Profile image is required" })
+      setLoading(false)
+      return
+    }
+
+    if (imageFile.size > 2.5 * 1024 * 1024) {
+      setMessage({ type: "error", text: "Image size exceeds 2.5 MB limit" })
+      setLoading(false)
+      return
+    }
+
+    let imageUrl = ""
+    try {
+      const fileExt = imageFile.name.split('.').pop()
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(fileName, imageFile)
+
+      if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`)
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(fileName)
+        
+      imageUrl = publicUrl
+    } catch (err: any) {
+      console.error("Image upload error:", err)
+      setMessage({ type: "error", text: err.message || "Failed to upload image" })
+      setLoading(false)
+      return
+    }
+
     const newMember = {
       name: formData.get("name") as string,
       role: formData.get("role") as string,
       department: formData.get("department") as string,
       bio: formData.get("bio") as string,
-      image: (formData.get("image") as string).trim(),
+      image: imageUrl,
       socials: {
         github: (formData.get("github") as string).trim() || null,
         linkedin: (formData.get("linkedin") as string).trim() || null,
@@ -31,7 +68,7 @@ export default function DbApplyPage() {
 
     try {
       // Basic validation
-      new URL(newMember.image)
+
       if (newMember.socials.github) new URL(newMember.socials.github)
       if (newMember.socials.linkedin) new URL(newMember.socials.linkedin)
       if (newMember.socials.instagram) new URL(newMember.socials.instagram)
@@ -119,14 +156,14 @@ export default function DbApplyPage() {
         </div>
 
         <div>
-          <label htmlFor="image" className="block font-medium mb-1 text-[#1a1a1a]">Profile Image URL *</label>
+          <label htmlFor="image" className="block font-medium mb-1 text-[#1a1a1a]">Profile Image (Max 2.5 MB) *</label>
           <input
-            type="url"
+            type="file"
             id="image"
             name="image"
-            placeholder="https://example.com/image.jpg"
+            accept="image/*"
             required
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF7D] focus:border-transparent transition-all"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF7D] focus:border-transparent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#e8f5e9] file:text-[#2e7d32] hover:file:bg-[#c8e6c9] bg-white cursor-pointer"
           />
         </div>
 

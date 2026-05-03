@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { getWebinarBySlug, getAllWebinarSlugs } from "@/data/webinars"
-import WatchPageClient from "./WatchPageClient"
+import WatchPageClient from "@/components/watch/WatchPageClient"
 
 export async function generateStaticParams() {
   const slugs = getAllWebinarSlugs()

@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import MembersClient from "./MembersClient"
+import MembersClient from "@/components/members/MembersClient"
 import {
   getAllMembers,
 } from "@/data/members"

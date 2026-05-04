@@ -35,13 +35,13 @@ export default function DbApplyPage() {
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
       
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("avatars")
+        .from("avatar")
         .upload(fileName, imageFile)
 
       if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`)
 
       const { data: { publicUrl } } = supabase.storage
-        .from("avatars")
+        .from("avatar")
         .getPublicUrl(fileName)
         
       imageUrl = publicUrl

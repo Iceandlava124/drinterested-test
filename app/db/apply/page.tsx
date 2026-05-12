@@ -4,9 +4,44 @@ import { useState } from "react"
 import { supabase } from "@/lib/supabase-client"
 import { Button } from "@/components/ui/button"
 
+const DEPARTMENTS = [
+  "Admin Team",
+  "Medical Student Advisory Council",
+  "Marketing",
+  "Publications",
+  "HR",
+  "Events",
+  "Technology",
+  "Finance",
+  "Podcast",
+  "Ambassadors"
+]
+
+const ROLES_BY_DEPARTMENT: Record<string, string[]> = {
+  "Admin Team": [
+    "Executive Director",
+    "Deputy Executive Director",
+    "Executive Assistant"
+  ],
+  "Medical Student Advisory Council": [
+    "Chair of the Medical Student Advisory Council",
+    "Member of the Medical Student Advisory Council"
+  ],
+  "Marketing": ["Director", "Deputy Director", "Coordinator"],
+  "Publications": ["Director", "Deputy Director", "Coordinator"],
+  "HR": ["Director", "Deputy Director", "Coordinator"],
+  "Events": ["Director", "Deputy Director", "Coordinator"],
+  "Technology": ["Director", "Deputy Director", "Coordinator"],
+  "Finance": ["Director", "Deputy Director", "Coordinator"],
+  "Podcast": ["Deputy Director", "Member of Podcast"],
+  "Ambassadors": ["Deputy Director", "Organizational Ambassador"],
+}
+
 export default function DbApplyPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [selectedDepartment, setSelectedDepartment] = useState("")
+  const [selectedRole, setSelectedRole] = useState("")
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -52,9 +87,15 @@ export default function DbApplyPage() {
       return
     }
 
+    let finalRole = formData.get("role") as string
+    const teamName = formData.get("teamName") as string
+    if (teamName && teamName.trim() !== "") {
+      finalRole = `${finalRole} - ${teamName.trim()}`
+    }
+
     const newMember = {
       name: formData.get("name") as string,
-      role: formData.get("role") as string,
+      role: finalRole,
       department: formData.get("department") as string,
       bio: formData.get("bio") as string,
       image: imageUrl,
@@ -79,6 +120,8 @@ export default function DbApplyPage() {
 
       setMessage({ type: "success", text: "✓ Application submitted successfully! We'll review it soon." })
       ;(e.target as HTMLFormElement).reset()
+      setSelectedDepartment("")
+      setSelectedRole("")
     } catch (err: any) {
       console.error(err)
       setMessage({ type: "error", text: `Error: ${err.message || "Invalid input"}` })
@@ -115,34 +158,66 @@ export default function DbApplyPage() {
         </div>
 
         <div>
-          <label htmlFor="role" className="block font-medium mb-1 text-[#1a1a1a]">Role *</label>
-          <input
-            type="text"
-            id="role"
-            name="role"
-            placeholder="e.g., Designer, Developer, Researcher"
-            required
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF7D] focus:border-transparent transition-all"
-          />
-        </div>
-
-        <div>
           <label htmlFor="department" className="block font-medium mb-1 text-[#1a1a1a]">Department *</label>
           <select
             id="department"
             name="department"
             required
+            value={selectedDepartment}
+            onChange={(e) => {
+              setSelectedDepartment(e.target.value)
+              setSelectedRole("")
+            }}
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF7D] focus:border-transparent transition-all bg-white"
           >
             <option value="">Select a department</option>
-            <option value="Leadership">Leadership</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Design">Design</option>
-            <option value="Research">Research</option>
-            <option value="Operations">Operations</option>
-            <option value="Community">Community</option>
+            {DEPARTMENTS.map(dept => (
+              <option key={dept} value={dept}>{dept}</option>
+            ))}
           </select>
         </div>
+
+        <div>
+          <label htmlFor="role" className="block font-medium mb-1 text-[#1a1a1a]">Role *</label>
+          {selectedDepartment && ROLES_BY_DEPARTMENT[selectedDepartment] ? (
+            <select
+              id="role"
+              name="role"
+              required
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF7D] focus:border-transparent transition-all bg-white"
+            >
+              <option value="">Select a role</option>
+              {ROLES_BY_DEPARTMENT[selectedDepartment].map(role => (
+                <option key={role} value={role}>{role}</option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type="text"
+              id="role"
+              name="role"
+              placeholder="Select a department first"
+              disabled
+              required
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF7D] focus:border-transparent transition-all bg-gray-50 text-gray-500"
+            />
+          )}
+        </div>
+
+        {["Marketing", "Publications", "HR", "Events", "Technology", "Finance"].includes(selectedDepartment) && (
+          <div>
+            <label htmlFor="teamName" className="block font-medium mb-1 text-[#1a1a1a]">Team Name (Optional)</label>
+            <input
+              type="text"
+              id="teamName"
+              name="teamName"
+              placeholder="e.g., Systems and Automation"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF7D] focus:border-transparent transition-all"
+            />
+          </div>
+        )}
 
         <div>
           <label htmlFor="bio" className="block font-medium mb-1 text-[#1a1a1a]">Bio *</label>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase-client"
-import { Loader2 } from "lucide-react"
+import { Loader2, Github, Linkedin, Instagram } from "lucide-react"
 
 type Member = {
   id: string
@@ -245,9 +245,10 @@ function MemberCard({ member, isFeatured = false }: { member: Member; isFeatured
               href={member.socials.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 text-[#4CAF7D] hover:bg-[#4CAF7D] hover:text-white transition-colors text-xs font-bold"
+              className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 text-[#4CAF7D] hover:bg-[#4CAF7D] hover:text-white transition-colors"
+              aria-label="GitHub"
             >
-              GH
+              <Github className="w-4 h-4" />
             </a>
           )}
           {member.socials?.linkedin && (
@@ -255,9 +256,10 @@ function MemberCard({ member, isFeatured = false }: { member: Member; isFeatured
               href={member.socials.linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 text-[#4CAF7D] hover:bg-[#4CAF7D] hover:text-white transition-colors text-xs font-bold"
+              className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 text-[#4CAF7D] hover:bg-[#4CAF7D] hover:text-white transition-colors"
+              aria-label="LinkedIn"
             >
-              IN
+              <Linkedin className="w-4 h-4" />
             </a>
           )}
           {member.socials?.instagram && (
@@ -265,9 +267,10 @@ function MemberCard({ member, isFeatured = false }: { member: Member; isFeatured
               href={member.socials.instagram}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 text-[#4CAF7D] hover:bg-[#4CAF7D] hover:text-white transition-colors text-xs font-bold"
+              className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 text-[#4CAF7D] hover:bg-[#4CAF7D] hover:text-white transition-colors"
+              aria-label="Instagram"
             >
-              IG
+              <Instagram className="w-4 h-4" />
             </a>
           )}
         </div>

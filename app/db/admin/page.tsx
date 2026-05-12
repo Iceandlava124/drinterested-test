@@ -31,6 +31,10 @@ export default function DbAdminPage() {
   const [activeTab, setActiveTab] = useState<"pending" | "approved">("pending")
   const [loading, setLoading] = useState(true)
 
+  const [editingMember, setEditingMember] = useState<Member | null>(null)
+  const [editForm, setEditForm] = useState<Partial<Member>>({})
+  const [savingEdit, setSavingEdit] = useState(false)
+
   // Auth Effect
   useEffect(() => {
     const isAuth = sessionStorage.getItem("adminAuth") === "1"
@@ -102,6 +106,38 @@ export default function DbAdminPage() {
     }
   }
 
+  const handleEditClick = (member: Member) => {
+    setEditingMember(member)
+    setEditForm(member)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editingMember) return
+    setSavingEdit(true)
+    try {
+      const { error } = await supabase
+        .from("members")
+        .update({
+          name: editForm.name,
+          role: editForm.role,
+          department: editForm.department,
+          bio: editForm.bio,
+          image: editForm.image,
+          socials: editForm.socials
+        })
+        .eq("id", editingMember.id)
+
+      if (error) throw error
+      setEditingMember(null)
+      fetchMembers()
+    } catch (err) {
+      console.error(err)
+      alert("Failed to save changes.")
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
@@ -141,7 +177,7 @@ export default function DbAdminPage() {
   const displayMembers = activeTab === "pending" ? pendingMembers : approvedMembers
 
   return (
-    <div className="container max-w-6xl mx-auto py-12 px-4">
+    <div className="container max-w-6xl mx-auto py-12 px-4 relative">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <h1 className="text-3xl font-bold font-bricolage text-[#1a1a1a]">Manage Members</h1>
         <button
@@ -221,34 +257,148 @@ export default function DbAdminPage() {
                   Applied {new Date(member.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                 </div>
 
-                <div className="mt-auto flex gap-3 pt-4 border-t border-gray-50">
-                  {!member.approved ? (
-                    <>
+                <div className="mt-auto flex flex-col gap-2 pt-4 border-t border-gray-50">
+                  <div className="flex gap-2">
+                    {!member.approved ? (
+                      <>
+                        <button
+                          onClick={() => handleApprove(member.id)}
+                          className="flex-1 py-2 bg-[#4CAF7D] hover:bg-[#2d8659] text-white text-sm font-semibold rounded transition-colors"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleRejectOrRemove(member.id, false)}
+                          className="flex-1 py-2 bg-[#f5f5f5] hover:bg-[#ffebee] text-[#c62828] border border-gray-200 text-sm font-semibold rounded transition-colors"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    ) : (
                       <button
-                        onClick={() => handleApprove(member.id)}
-                        className="flex-1 py-2 bg-[#4CAF7D] hover:bg-[#2d8659] text-white text-sm font-semibold rounded transition-colors"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleRejectOrRemove(member.id, false)}
+                        onClick={() => handleRejectOrRemove(member.id, true)}
                         className="flex-1 py-2 bg-[#f5f5f5] hover:bg-[#ffebee] text-[#c62828] border border-gray-200 text-sm font-semibold rounded transition-colors"
                       >
-                        Reject
+                        Remove
                       </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => handleRejectOrRemove(member.id, true)}
-                      className="flex-1 py-2 bg-[#f5f5f5] hover:bg-[#ffebee] text-[#c62828] border border-gray-200 text-sm font-semibold rounded transition-colors"
-                    >
-                      Remove
-                    </button>
-                  )}
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleEditClick(member)}
+                    className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-transparent text-sm font-semibold rounded transition-colors"
+                  >
+                    Edit Info
+                  </button>
                 </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingMember && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <h2 className="text-2xl font-bold font-bricolage mb-6 text-[#1a1a1a]">Edit Member</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  value={editForm.name || ""}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#4CAF7D]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Department</label>
+                  <input
+                    type="text"
+                    value={editForm.department || ""}
+                    onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#4CAF7D]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Role</label>
+                  <input
+                    type="text"
+                    value={editForm.role || ""}
+                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#4CAF7D]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Image Path</label>
+                <input
+                  type="text"
+                  value={editForm.image || ""}
+                  onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
+                  placeholder="/logo.png"
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#4CAF7D]"
+                />
+                <p className="text-xs text-gray-500 mt-1">E.g., /name.jpg or full URL. Make sure it's uploaded to the public folder if using a relative path.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Bio</label>
+                <textarea
+                  value={editForm.bio || ""}
+                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#4CAF7D]"
+                  rows={4}
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">LinkedIn</label>
+                  <input
+                    type="text"
+                    value={editForm.socials?.linkedin || ""}
+                    onChange={(e) => setEditForm({ ...editForm, socials: { ...editForm.socials, linkedin: e.target.value } })}
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#4CAF7D]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Instagram</label>
+                  <input
+                    type="text"
+                    value={editForm.socials?.instagram || ""}
+                    onChange={(e) => setEditForm({ ...editForm, socials: { ...editForm.socials, instagram: e.target.value } })}
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#4CAF7D]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">GitHub</label>
+                  <input
+                    type="text"
+                    value={editForm.socials?.github || ""}
+                    onChange={(e) => setEditForm({ ...editForm, socials: { ...editForm.socials, github: e.target.value } })}
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#4CAF7D]"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-8">
+              <button
+                onClick={() => setEditingMember(null)}
+                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded transition-colors"
+                disabled={savingEdit}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="px-6 py-2 bg-[#4CAF7D] hover:bg-[#2d8659] text-white font-semibold rounded transition-colors flex items-center gap-2"
+                disabled={savingEdit}
+              >
+                {savingEdit && <Loader2 className="w-4 h-4 animate-spin" />}
+                Save Changes
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

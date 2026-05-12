@@ -1,10 +1,7 @@
 import { blogPosts } from "@/data/blog"
 import { webinars } from "@/data/webinars"
-import {
-  getAllMembers,
-  MemberType,
-} from "@/data/members"
 import { upcomingEvents, pastEvents, EventType } from "@/data/events"
+import { supabase } from "@/lib/supabase-client"
 
 // Helper function to escape XML special characters
 function escapeXml(unsafe: string): string {
@@ -277,24 +274,24 @@ export async function GET() {
   })
 
 // ===== Add Members =====
-  const allMembers: MemberType[] = getAllMembers()
+  const { data: allMembers } = await supabase.from('members').select('*').eq('approved', true)
 
-  allMembers.forEach((member) => {
+  ;(allMembers || []).forEach((member) => {
     const memberUrl = `${baseUrl}/team/${member.id}`
-    const imageUrl = `${baseUrl}${member.image}`
+    const imageUrl = member.image?.startsWith('http') ? member.image : `${baseUrl}${member.image || '/logo.png'}`
     const memberImageDescription =
       member.image === "/logo.png"
         ? `${member.name}, ${member.role}`
         : imageDescriptions[member.image] || `${member.name}, ${member.role}`
     // Use a fixed valid date for team members instead of current date
-    const pubDate = new Date("2025-01-01T00:00:00Z").toUTCString()
+    const pubDate = new Date(member.created_at || "2025-01-01T00:00:00Z").toUTCString()
 
     items.push(`
     <item>
       <title><![CDATA[${member.name} - ${member.role}]]></title>
       <link>${escapeXml(memberUrl)}</link>
       <guid isPermaLink="true">${escapeXml(memberUrl)}</guid>
-      <description><![CDATA[${member.bio}]]></description>
+      <description><![CDATA[${member.bio || ''}]]></description>
       <pubDate>${pubDate}</pubDate>
       <category>Team Member</category>
       <media:content url="${escapeXml(imageUrl)}" medium="image" type="image/jpeg">
@@ -304,13 +301,13 @@ export async function GET() {
       <content:encoded><![CDATA[
         <img src="${escapeXml(imageUrl)}" alt="${escapeXml(member.name)}" />
         <p><strong>${escapeXml(member.role)}</strong></p>
-        <p>${member.bio}</p>
+        <p>${member.bio || ''}</p>
         ${
-          member.socialLinks
-            ? Object.entries(member.socialLinks)
+          member.socials
+            ? Object.entries(member.socials)
                 .map(([key, url]) =>
                   url
-                    ? `<p><a href="${escapeXml(url)}" target="_blank">${escapeXml(key)}</a></p>`
+                    ? `<p><a href="${escapeXml(url as string)}" target="_blank">${escapeXml(key)}</a></p>`
                     : ""
                 )
                 .join("")

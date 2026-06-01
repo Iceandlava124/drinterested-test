@@ -52,6 +52,10 @@ const nextConfig = {
         destination: "/members/apply",
         permanent: true,
       },
+      {
+        source: "/db/members",
+        destination: "/members", permanent: true,
+      },
     ];
   },
 

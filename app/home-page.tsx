@@ -24,19 +24,20 @@ import ScrollToTop from "@/components/scroll-to-top"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getLatestOngoingEvent } from "@/data/events"
-import { getFeaturedPosts } from "@/data/blog"
+import { getFeaturedPosts, getRecentPosts } from "@/data/blog"
 import NewsletterForm from "@/components/newsletter-form"
 import { motion } from "framer-motion"
 import { Quote, Users, TrendingUp, Heart, Award, BookOpen, Sparkles, Globe } from "lucide-react"
 import SeoSchema from "@/components/seo-schema"
 import { generateOrganizationSchema } from "@/lib/seo-utils"
-import DiscordIcon from "@/components/icons/discord-icon"
+import { DomainAnnouncementPopup } from "@/components/domain-announcement-popup"
+
 
   const scaleIn = {
     hidden: { opacity: 0, scale: 0.9 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
   }
-export default function HomePage({ recentPost }: { recentPost?: any }) {
+export default function HomePage({ recentPost: passedRecentPost }: { recentPost?: any }) {
   const [isLoaded, setIsLoaded] = useState(false)
 
   // Scroll to top on page load test
@@ -49,6 +50,8 @@ export default function HomePage({ recentPost }: { recentPost?: any }) {
   const latestEvent = getLatestOngoingEvent()
   // Get featured blog posts
   const featuredPosts = getFeaturedPosts().slice(0, 3)
+  // Get the most recent blog post
+  const recentPost = passedRecentPost || getRecentPosts(1)[0]
 
   // Animation variants
   const fadeIn = {
@@ -70,16 +73,17 @@ export default function HomePage({ recentPost }: { recentPost?: any }) {
     <div className="flex flex-col min-h-screen">
       <SeoSchema schema={generateOrganizationSchema()} />
       <ScrollToTop />
+      <DomainAnnouncementPopup />
 
       {/* Hero Section */}
-      <section className="hero-section relative py-10 md:py-16 overflow-hidden bg-gradient-to-b from-[#f5f1eb] to-white">
+      <section className="relative py-10 md:py-16 overflow-hidden bg-gradient-to-b from-[#f5f1eb] to-white">
         <div className="absolute inset-0 bg-[url('/pattern-bg.png')] opacity-5"></div>
         <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-[#4ecdc4]/5 via-transparent to-[#405862]/5 opacity-70"></div>
 
         <div className="container relative z-10">
           <div className="grid gap-6 md:grid-cols-2 md:gap-10 items-center">
             <motion.div
-              className="space-y-4 hero-fixed-colors order-2 md:order-1"
+              className="space-y-4"
               initial="hidden"
               animate={isLoaded ? "visible" : "hidden"}
               variants={fadeIn}
@@ -108,9 +112,6 @@ export default function HomePage({ recentPost }: { recentPost?: any }) {
                 </Link>
 
                 <div className="flex items-center gap-3 flex-wrap mt-1">
-                  <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
-  
-</div>
                   <Link
                     href="https://discord.gg/pzbGRgsGXY"
                     target="_blank"
@@ -118,7 +119,22 @@ export default function HomePage({ recentPost }: { recentPost?: any }) {
                     className="inline-flex items-center text-[#405862] hover:text-[#4ecdc4] transition-colors gap-1 hover:scale-110 duration-200"
                     aria-label="Discord"
                   >
-                    <DiscordIcon className="h-5 w-5" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="9" cy="12" r="1" />
+                      <circle cx="15" cy="12" r="1" />
+                      <path d="M7.5 7.2c.3-.1.6-.2.8-.2h7.4c.2 0 .5.1.8.2M7.5 16.8c.3.1.6.2.8.2h7.4c.2 0 .5-.1.8-.2" />
+                      <path d="M16 3h-2a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2H4a2 2 0 0 0-2 2v3a8 8 0 0 0 4 7v3a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-3a8 8 0 0 0 4-7V5a2 2 0 0 0-2-2z" />
+                    </svg>
                   </Link>
                   <Link
                     href="https://www.instagram.com/dr.interested/"
@@ -160,29 +176,10 @@ export default function HomePage({ recentPost }: { recentPost?: any }) {
                   </Link>
                 </div>
               </div>
-              <div className="mt-6 grid grid-cols-2 gap-4 max-w-sm w-full justify-items-center">
-                <div className="relative h-14 w-full max-w-[140px] rounded-lg overflow-hidden shadow-sm">
-                  <Image
-                    src="/imaginecan.png"
-                    alt="Imagine Canada Member"
-                    fill
-                    className="object-contain "
-                  />
-                </div>
-
-                <div className="relative h-14 w-full max-w-[140px] rounded-lg overflow-hidden shadow-sm">
-                  <Image
-                    src="/development.png"
-                    alt="Youth development recognition"
-                    fill
-                    className="object-contain "
-                  />
-                </div>
-              </div>
             </motion.div>
 
             <motion.div
-              className="relative flex items-center justify-center order-1 md:order-2 my-6 md:my-0"
+              className="relative flex items-center justify-center"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={isLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.7 }}
@@ -227,7 +224,7 @@ export default function HomePage({ recentPost }: { recentPost?: any }) {
       <motion.div variants={scaleIn}>
         <div className="bg-gradient-to-br from-[#4ecdc4]/10 to-[#4ecdc4]/5 p-5 rounded-xl text-center border border-[#4ecdc4]/20 hover:border-[#4ecdc4]/40 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
           <Users className="w-7 h-7 text-[#4ecdc4] mx-auto mb-2" />
-          <div className="text-3xl font-bold text-[#405862] mb-1">160,000+</div>
+          <div className="text-3xl font-bold text-[#405862] mb-1">60,000+</div>
           <div className="text-[#405862]/70 text-xs font-medium">Youth Impacted</div>
         </div>
       </motion.div>
@@ -235,7 +232,7 @@ export default function HomePage({ recentPost }: { recentPost?: any }) {
       <motion.div variants={scaleIn}>
         <div className="bg-gradient-to-br from-[#4ecdc4]/10 to-[#4ecdc4]/5 p-5 rounded-xl text-center border border-[#4ecdc4]/20 hover:border-[#4ecdc4]/40 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
           <Globe className="w-7 h-7 text-[#4ecdc4] mx-auto mb-2" />
-          <div className="text-3xl font-bold text-[#405862] mb-1">106</div>
+          <div className="text-3xl font-bold text-[#405862] mb-1">70+</div>
           <div className="text-[#405862]/70 text-xs font-medium">Countries Reached</div>
         </div>
       </motion.div>
@@ -243,7 +240,7 @@ export default function HomePage({ recentPost }: { recentPost?: any }) {
       <motion.div variants={scaleIn}>
         <div className="bg-gradient-to-br from-[#4ecdc4]/10 to-[#4ecdc4]/5 p-5 rounded-xl text-center border border-[#4ecdc4]/20 hover:border-[#4ecdc4]/40 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
           <TrendingUp className="w-7 h-7 text-[#4ecdc4] mx-auto mb-2" />
-          <div className="text-3xl font-bold text-[#405862] mb-1">1,400+</div>
+          <div className="text-3xl font-bold text-[#405862] mb-1">1100+</div>
           <div className="text-[#405862]/70 text-xs font-medium">Members</div>
         </div>
       </motion.div>
@@ -251,8 +248,8 @@ export default function HomePage({ recentPost }: { recentPost?: any }) {
       <motion.div variants={scaleIn}>
               <div className="bg-gradient-to-br from-[#4ecdc4]/10 to-[#4ecdc4]/5 p-5 rounded-xl text-center border border-[#4ecdc4]/20 hover:border-[#4ecdc4]/40 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
                 <Award className="w-7 h-7 text-[#4ecdc4] mx-auto mb-2" />
-                <div className="text-3xl font-bold text-[#405862] mb-1">3.7M+</div>
-                <div className="text-[#405862]/70 text-xs font-medium">Content Impressions</div>
+                <div className="text-3xl font-bold text-[#405862] mb-1">1 Million+</div>
+                <div className="text-[#405862]/70 text-xs font-medium">Content Views</div>
               </div>
             </motion.div>
     </motion.div>
@@ -799,11 +796,9 @@ export default function HomePage({ recentPost }: { recentPost?: any }) {
                 <h4 className="text-base font-semibold text-[#405862] mb-3">Listen on Spotify</h4>
                 <div className="aspect-video w-full rounded-md overflow-hidden">
                   <iframe
-                    data-testid="embed-iframe"
-                    style={{ borderRadius: "12px" }}
-                    src="https://open.spotify.com/embed/episode/03vIYvBFFgNplGlVCKUmLm/video?utm_source=generator"
-                    width="624"
-                    height="351"
+                    src="https://open.spotify.com/embed/episode/0PGLBjdMcupoOYP3IzHooS?utm_source=generator"
+                    width="100%"
+                    height="352"
                     frameBorder="0"
                     allowFullScreen
                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
@@ -829,13 +824,12 @@ export default function HomePage({ recentPost }: { recentPost?: any }) {
                 </h4>
                 <div className="aspect-video w-full rounded-md overflow-hidden">
                   <iframe
-                    width="560"
+                    width="100%"
                     height="315"
-                    src="https://www.youtube.com/embed/dQiELtTYjQs?si=JxmVEt2x3ZVq6cAF"
-                    title="YouTube video player"
+                    src="https://www.youtube.com/embed/videoseries?list=PLhgtIQtU24W2axj8qIfCS-j1idk6LbCF4"
+                    title="Dr. Interested YouTube Playlist - Healthcare Education for High School Students"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
                     allowFullScreen
                     className="rounded-md"
                   ></iframe>

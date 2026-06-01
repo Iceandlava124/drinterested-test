@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import ClientPage from "@/components/home/client-page"
+import ClientPage from "./client-page"
 import { createClient } from "@supabase/supabase-js"
 
 export const revalidate = 0; // Don't statically cache

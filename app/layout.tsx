@@ -175,7 +175,7 @@ export default function RootLayout({
           href="https://www.drinterested.org/rss.xml"
         />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           <AccessibilityWidget />
           <SeoSchema schema={generateOrganizationSchema()} />

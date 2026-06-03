@@ -6,14 +6,38 @@ import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Instagram, Linkedin, Globe, ChevronDown, ChevronUp } from "lucide-react"
-import { departments, advisors, executiveDirector, deputyexecdir } from "@/data/members"
+import { Instagram, Linkedin, Globe, ChevronDown, ChevronUp, Loader2, Sparkles, Clock, Award, FileText, CheckCircle2 } from "lucide-react"
+import { executiveDirector as staticEd, deputyexecdir as staticVps, advisors as staticAdvisors, departments as staticDepartments } from "@/data/members"
 import ScrollToTop from "@/components/scroll-to-top"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { supabase } from "@/lib/supabase-client"
+
+type MemberType = {
+  id: string
+  name: string
+  role: string
+  image: string
+  bio: string
+  socialLinks?: {
+    linkedin?: string
+    instagram?: string
+    website?: string
+    other?: string
+  }
+}
+
+type DepartmentType = {
+  id: string
+  name: string
+  description: string
+  director: MemberType | MemberType[]
+  members: MemberType[]
+}
 
 export default function MembersClient() {
+  const [dbMembers, setDbMembers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [expandedBios, setExpandedBios] = useState<Record<string, boolean>>({})
-  const [visibleMembers, setVisibleMembers] = useState<Record<string, boolean>>({})
 
   const params = useParams() // { tab: 'leadership' | 'departments' | 'advisors' | 'join' }
   const router = useRouter()
@@ -25,17 +49,38 @@ export default function MembersClient() {
 
   const [activeTab, setActiveTab] = useState(initialTab)
 
-  // Update URL when active tab changes
+  // Fetch approved members from database
+  useEffect(() => {
+    async function fetchMembers() {
+      try {
+        const { data, error } = await supabase
+          .from("members")
+          .select("*")
+          .eq("approved", true)
+          .order("created_at", { ascending: true })
+
+        if (error) throw error
+        setDbMembers(data || [])
+      } catch (err) {
+        console.error("Error loading database members:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchMembers()
+  }, [])
+
+  // Sync tab with URL
   useEffect(() => {
     if (activeTab !== initialTab) {
       router.replace(`/members/${activeTab}`)
     }
   }, [activeTab, initialTab, router])
 
-  // Scroll to top on page load
+  // Scroll to top on tab change
   useEffect(() => {
     window.scrollTo(0, 0)
-  }, [])
+  }, [activeTab])
 
   const toggleBio = (id: string) => {
     setExpandedBios((prev) => ({
@@ -44,35 +89,150 @@ export default function MembersClient() {
     }))
   }
 
-  const toggleMembers = (id: string) => {
-    setVisibleMembers((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }))
-  }
-
   const truncateBio = (bio: string, maxLength = 150) => {
+    if (!bio) return ""
     if (bio.length <= maxLength) return bio
     return bio.substring(0, maxLength) + "..."
+  }
+
+  // Helper to map DB image path to standard web URLs
+  const formatImagePath = (img: string | undefined | null) => {
+    if (!img) return "/logo.png"
+    if (img.startsWith("http")) return img
+    if (img.startsWith("/")) return img
+    return `/${img}`
+  }
+
+  // Dynamic distribution of members
+  const getDepartmentMatch = (deptId: string, memberDept: string) => {
+    const id = deptId.toLowerCase()
+    const mDept = (memberDept || "").toLowerCase()
+    if (id === "tech") return mDept.includes("tech")
+    if (id === "outreach") return mDept.includes("outreach")
+    if (id === "research") return mDept.includes("research")
+    if (id === "marketing") return mDept.includes("marketing")
+    if (id === "publications") return mDept.includes("publication")
+    if (id === "hr") return mDept.includes("human resources") || mDept.includes("hr")
+    if (id === "events") return mDept.includes("event")
+    if (id === "grants") return mDept.includes("grant")
+    return false
+  }
+
+  // 1. Executive Director / President
+  const rawEd = dbMembers.find((m) => m.role === "Executive Director" || m.role === "President")
+  const executiveDirector: MemberType = rawEd
+    ? {
+        id: rawEd.id,
+        name: rawEd.name,
+        role: rawEd.role,
+        image: formatImagePath(rawEd.image),
+        bio: rawEd.bio || "",
+        socialLinks: rawEd.socials || {},
+      }
+    : staticEd
+
+  // 2. Deputy Executive Directors
+  const rawVps = dbMembers.filter((m) => m.role === "Deputy Executive Director")
+  const deputyexecdir: MemberType[] =
+    rawVps.length > 0
+      ? rawVps.map((vp) => ({
+          id: vp.id,
+          name: vp.name,
+          role: vp.role,
+          image: formatImagePath(vp.image),
+          bio: vp.bio || "",
+          socialLinks: vp.socials || {},
+        }))
+      : staticVps
+
+  // 3. Advisors
+  const rawAdvisors = dbMembers.filter(
+    (m) =>
+      m.department === "Advisory Board" ||
+      m.department === "Advisors" ||
+      m.role.toLowerCase().includes("advisor"),
+  )
+  const advisorsList: MemberType[] =
+    rawAdvisors.length > 0
+      ? rawAdvisors.map((adv) => ({
+          id: adv.id,
+          name: adv.name,
+          role: adv.role,
+          image: formatImagePath(adv.image),
+          bio: adv.bio || "",
+          socialLinks: adv.socials || {},
+        }))
+      : staticAdvisors
+
+  // 4. Departments
+  const departmentsList: DepartmentType[] = staticDepartments.map((staticDept) => {
+    const deptMembers = dbMembers.filter((m) => getDepartmentMatch(staticDept.id, m.department))
+
+    if (deptMembers.length === 0) {
+      return staticDept // Fallback to static data
+    }
+
+    // Directors (role contains director or lead)
+    const rawDirs = deptMembers.filter((m) => m.role.toLowerCase().includes("director"))
+    const directors: MemberType[] = rawDirs.map((dir) => ({
+      id: dir.id,
+      name: dir.name,
+      role: dir.role,
+      image: formatImagePath(dir.image),
+      bio: dir.bio || "",
+      socialLinks: dir.socials || {},
+    }))
+
+    // General members
+    const rawMems = deptMembers.filter((m) => !m.role.toLowerCase().includes("director"))
+    const members: MemberType[] = rawMems.map((mem) => ({
+      id: mem.id,
+      name: mem.name,
+      role: mem.role,
+      image: formatImagePath(mem.image),
+      bio: mem.bio || "",
+      socialLinks: mem.socials || {},
+    }))
+
+    return {
+      id: staticDept.id,
+      name: staticDept.name,
+      description: staticDept.description,
+      director: directors.length > 0 ? (directors.length === 1 ? directors[0] : directors) : staticDept.director,
+      members: members.length > 0 ? members : staticDept.members,
+    }
+  })
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-[#405862]">
+        <Loader2 className="w-8 h-8 animate-spin mb-4 text-[#4ecdc4]" />
+        <p>Loading members...</p>
+      </div>
+    )
   }
 
   return (
     <div>
       <ScrollToTop />
+      
+      {/* Title Banner */}
       <section className="bg-[#f5f1eb] py-10">
         <div className="container">
-          <h1 className="text-3xl font-bold text-center mb-2 text-[#405862]">Our Team</h1>
-          <p className="text-center text-[#405862] mb-6 max-w-2xl mx-auto text-sm">
+          <h1 className="text-3xl font-bold text-center mb-2 text-[#405862] font-bricolage">Our Team</h1>
+          <p className="text-center text-[#405862]/90 mb-6 max-w-2xl mx-auto text-sm">
             Meet the talented team behind Dr. Interested, dedicated to inspiring the next generation of healthcare
             professionals.
           </p>
         </div>
       </section>
 
+      {/* Tabs Layout */}
       <section className="py-8 bg-white">
         <div className="container">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            {/* Centered Tabs */}
+            
+            {/* Centered Tab Headers */}
             <div className="flex justify-center mb-8">
               <TabsList className="grid grid-cols-4 gap-2 h-12 p-1 max-w-xl">
                 <TabsTrigger value="leadership">Leadership</TabsTrigger>
@@ -87,39 +247,42 @@ export default function MembersClient() {
               </TabsList>
             </div>
 
-            {/* Leadership */}
+            {/* TAB: Leadership */}
             <TabsContent value="leadership" className="space-y-6">
+              
               {/* Executive Director */}
               <div>
-                <h3 className="text-lg font-semibold mb-4 text-center text-[#405862]">Executive Director</h3>
+                <h3 className="text-lg font-semibold mb-4 text-center text-[#405862] font-bricolage">Executive Director</h3>
                 <div className="max-w-2xl mx-auto">
                   <Card className="overflow-hidden border-[#405862]/20 shadow-sm hover:shadow-md transition-shadow">
                     <div className="grid md:grid-cols-3">
                       <div className="md:col-span-1 bg-[#f5f1eb] flex items-center justify-center">
                         <div className="relative h-full w-full aspect-square">
-                          <Image src="/adil.png" alt={executiveDirector.name} fill className="object-cover" />
+                          <Image src={executiveDirector.image} alt={executiveDirector.name} fill className="object-cover" />
                         </div>
                       </div>
                       <CardContent className="md:col-span-2 p-4">
-                        <h4 className="text-lg font-semibold text-[#405862]">{executiveDirector.name}</h4>
-                        <p className="text-sm text-[#405862]/75 mb-2">{executiveDirector.role}</p>
-                        <p className="text-sm text-[#405862] mb-3">
+                        <h4 className="text-lg font-semibold text-[#405862] font-bricolage">{executiveDirector.name}</h4>
+                        <p className="text-sm text-[#4ecdc4] font-medium mb-2">{executiveDirector.role}</p>
+                        <p className="text-sm text-[#405862]/90 leading-relaxed mb-3">
                           {expandedBios[executiveDirector.id] ? executiveDirector.bio : truncateBio(executiveDirector.bio)}
                         </p>
-                        <button
-                          onClick={() => toggleBio(executiveDirector.id)}
-                          className="text-[#405862] text-sm font-medium hover:text-[#4ecdc4] transition-colors mb-3 flex items-center"
-                        >
-                          {expandedBios[executiveDirector.id] ? (
-                            <>
-                              Show Less <ChevronUp className="h-4 w-4 ml-1" />
-                            </>
-                          ) : (
-                            <>
-                              See More <ChevronDown className="h-4 w-4 ml-1" />
-                            </>
-                          )}
-                        </button>
+                        {executiveDirector.bio.length > 150 && (
+                          <button
+                            onClick={() => toggleBio(executiveDirector.id)}
+                            className="text-[#405862] text-sm font-semibold hover:text-[#4ecdc4] transition-colors mb-3 flex items-center"
+                          >
+                            {expandedBios[executiveDirector.id] ? (
+                              <>
+                                Show Less <ChevronUp className="h-4 w-4 ml-1" />
+                              </>
+                            ) : (
+                              <>
+                                See More <ChevronDown className="h-4 w-4 ml-1" />
+                              </>
+                            )}
+                          </button>
+                        )}
                         <div className="flex space-x-3">
                           {executiveDirector.socialLinks?.linkedin && (
                             <Link
@@ -160,26 +323,26 @@ export default function MembersClient() {
 
               {/* Deputy Exec Directors */}
               <div>
-                <h3 className="text-lg font-semibold mb-4 text-center text-[#405862]">Deputy Executive Directors</h3>
-                <div className="grid md:grid-cols-2 gap-4">
+                <h3 className="text-lg font-semibold mb-4 text-center text-[#405862] font-bricolage">Deputy Executive Directors</h3>
+                <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
                   {deputyexecdir.map((vp) => (
                     <Card key={vp.id} className="overflow-hidden border-[#405862]/20 shadow-sm hover:shadow-md transition-shadow">
                       <div className="grid md:grid-cols-3">
                         <div className="md:col-span-1 bg-[#f5f1eb] flex items-center justify-center">
                           <div className="relative h-full w-full aspect-square">
-                            <Image src={vp.image || "/placeholder.svg"} alt={vp.name} fill className="object-cover" />
+                            <Image src={vp.image} alt={vp.name} fill className="object-cover" />
                           </div>
                         </div>
                         <CardContent className="md:col-span-2 p-4">
-                          <h4 className="text-base font-semibold text-[#405862]">{vp.name}</h4>
-                          <p className="text-sm text-[#405862]/75 mb-2">{vp.role}</p>
-                          <p className="text-sm text-[#405862] mb-3">
+                          <h4 className="text-base font-semibold text-[#405862] font-bricolage">{vp.name}</h4>
+                          <p className="text-sm text-[#4ecdc4] font-medium mb-2">{vp.role}</p>
+                          <p className="text-sm text-[#405862]/90 leading-relaxed mb-3">
                             {expandedBios[vp.id] ? vp.bio : truncateBio(vp.bio, 120)}
                           </p>
                           {vp.bio.length > 120 && (
                             <button
                               onClick={() => toggleBio(vp.id)}
-                              className="text-[#405862] text-sm font-medium hover:text-[#4ecdc4] transition-colors mb-3 flex items-center"
+                              className="text-[#405862] text-sm font-semibold hover:text-[#4ecdc4] transition-colors mb-3 flex items-center"
                             >
                               {expandedBios[vp.id] ? (
                                 <>
@@ -217,20 +380,21 @@ export default function MembersClient() {
               </div>
             </TabsContent>
 
+            {/* TAB: Departments */}
             <TabsContent value="departments" className="space-y-6">
-              {departments.map((department) => (
+              {departmentsList.map((department) => (
                 <div
                   key={department.id}
                   className="border rounded-lg overflow-hidden bg-white border-[#405862]/20 shadow-sm mb-4"
                 >
                   <div className="p-4 border-b bg-[#f5f1eb]/30">
-                    <h3 className="text-lg font-semibold text-[#405862]">{department.name}</h3>
-                    <p className="text-[#405862]/80 text-sm">{department.description}</p>
+                    <h3 className="text-lg font-semibold text-[#405862] font-bricolage">{department.name}</h3>
+                    <p className="text-[#405862]/80 text-sm mt-1">{department.description}</p>
                   </div>
 
                   <div className="p-4 border-b">
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-base font-semibold text-[#405862]">Director</h4>
+                      <h4 className="text-base font-semibold text-[#405862] font-bricolage">Director</h4>
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                       {Array.isArray(department.director) ? (
@@ -243,7 +407,7 @@ export default function MembersClient() {
                               <div className="col-span-1 bg-[#f5f1eb]">
                                 <div className="relative h-full w-full aspect-square">
                                   <Image
-                                    src={director.image || "/placeholder.svg"}
+                                    src={director.image}
                                     alt={director.name}
                                     fill
                                     className="object-cover"
@@ -251,15 +415,15 @@ export default function MembersClient() {
                                 </div>
                               </div>
                               <CardContent className="col-span-2 p-3">
-                                <h5 className="font-semibold text-sm text-[#405862]">{director.name}</h5>
-                                <p className="text-xs text-[#405862]/75 mb-1">{director.role}</p>
-                                <p className="text-xs text-[#405862] mb-1">
+                                <h5 className="font-semibold text-sm text-[#405862] font-bricolage">{director.name}</h5>
+                                <p className="text-xs text-[#4ecdc4] font-medium mb-1">{director.role}</p>
+                                <p className="text-xs text-[#405862]/90 leading-relaxed mb-1">
                                   {expandedBios[director.id] ? director.bio : truncateBio(director.bio, 80)}
                                 </p>
                                 {director.bio.length > 80 && (
                                   <button
                                     onClick={() => toggleBio(director.id)}
-                                    className="text-[#405862] text-xs font-medium hover:text-[#4ecdc4] transition-colors mb-1 flex items-center"
+                                    className="text-[#405862] text-xs font-semibold hover:text-[#4ecdc4] transition-colors mb-1 flex items-center"
                                   >
                                     {expandedBios[director.id] ? (
                                       <>
@@ -304,7 +468,7 @@ export default function MembersClient() {
                             <div className="col-span-1 bg-[#f5f1eb]">
                               <div className="relative h-full w-full aspect-square">
                                 <Image
-                                  src={department.director.image || "/placeholder.svg"}
+                                  src={department.director.image}
                                   alt={department.director.name}
                                   fill
                                   className="object-cover"
@@ -312,9 +476,9 @@ export default function MembersClient() {
                               </div>
                             </div>
                             <CardContent className="col-span-2 p-3">
-                              <h5 className="font-semibold text-sm text-[#405862]">{department.director.name}</h5>
-                              <p className="text-xs text-[#405862]/75 mb-1">{department.director.role}</p>
-                              <p className="text-xs text-[#405862] mb-1">
+                              <h5 className="font-semibold text-sm text-[#405862] font-bricolage">{department.director.name}</h5>
+                              <p className="text-xs text-[#4ecdc4] font-medium mb-1">{department.director.role}</p>
+                              <p className="text-xs text-[#405862]/90 leading-relaxed mb-1">
                                 {expandedBios[department.director.id]
                                   ? department.director.bio
                                   : truncateBio(department.director.bio, 80)}
@@ -322,7 +486,7 @@ export default function MembersClient() {
                               {department.director.bio.length > 80 && (
                                 <button
                                   onClick={() => toggleBio(department.director.id)}
-                                  className="text-[#405862] text-xs font-medium hover:text-[#4ecdc4] transition-colors mb-1 flex items-center"
+                                  className="text-[#405862] text-xs font-semibold hover:text-[#4ecdc4] transition-colors mb-1 flex items-center"
                                 >
                                   {expandedBios[department.director.id] ? (
                                     <>
@@ -366,90 +530,81 @@ export default function MembersClient() {
 
                   <div className="p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-base font-semibold text-[#405862]">Members</h4>
-                      <Button
-                        onClick={() => toggleMembers(department.id)}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs h-8"
-                      >
-                        {!visibleMembers[department.id] ? "Show Members" : "Hide Members"}
-                      </Button>
+                      <h4 className="text-base font-semibold text-[#405862] font-bricolage">Members</h4>
                     </div>
 
-                    {visibleMembers[department.id] && (
-                      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-                        {department.members.map((member) => (
-                          <Card
-                            key={member.id}
-                            className="overflow-hidden border-[#405862]/20 shadow-sm hover:shadow-md transition-shadow"
-                          >
-                            <CardContent className="p-3">
-                              <div className="flex items-center gap-2 mb-1">
-                                <div className="relative h-8 w-8 rounded-full overflow-hidden flex-shrink-0">
-                                  <Image
-                                    src={member.image || "/placeholder.svg"}
-                                    alt={member.name}
-                                    fill
-                                    className="object-cover"
-                                  />
-                                </div>
-                                <div>
-                                  <h5 className="font-semibold text-sm text-[#405862]">{member.name}</h5>
-                                  <p className="text-xs text-[#405862]/75">{member.role}</p>
-                                </div>
+                    <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+                      {department.members.map((member) => (
+                        <Card
+                          key={member.id}
+                          className="overflow-hidden border-[#405862]/20 shadow-sm hover:shadow-md transition-shadow"
+                        >
+                          <CardContent className="p-3">
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="relative h-8 w-8 rounded-full overflow-hidden flex-shrink-0">
+                                <Image
+                                  src={member.image}
+                                  alt={member.name}
+                                  fill
+                                  className="object-cover"
+                                />
                               </div>
-                              <p className="text-xs text-[#405862] mb-1">
-                                {expandedBios[member.id] ? member.bio : truncateBio(member.bio, 60)}
-                              </p>
-                              {member.bio.length > 60 && (
-                                <button
-                                  onClick={() => toggleBio(member.id)}
-                                  className="text-[#405862] text-xs font-medium hover:text-[#4ecdc4] transition-colors mb-1 flex items-center"
+                              <div>
+                                <h5 className="font-semibold text-sm text-[#405862] font-bricolage">{member.name}</h5>
+                                <p className="text-xs text-[#405862]/75">{member.role}</p>
+                              </div>
+                            </div>
+                            <p className="text-xs text-[#405862]/90 leading-relaxed mb-1">
+                              {expandedBios[member.id] ? member.bio : truncateBio(member.bio, 60)}
+                            </p>
+                            {member.bio.length > 60 && (
+                              <button
+                                onClick={() => toggleBio(member.id)}
+                                className="text-[#405862] text-xs font-semibold hover:text-[#4ecdc4] transition-colors mb-1 flex items-center"
+                              >
+                                {expandedBios[member.id] ? (
+                                  <>
+                                    Show Less <ChevronUp className="h-3 w-3 ml-1" />
+                                  </>
+                                ) : (
+                                  <>
+                                    See More <ChevronDown className="h-3 w-3 ml-1" />
+                                  </>
+                                )}
+                              </button>
+                            )}
+                            <div className="flex space-x-2 mt-1">
+                              {member.socialLinks?.linkedin && (
+                                <Link
+                                  href={member.socialLinks.linkedin}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[#405862] hover:text-[#4ecdc4] transition-colors"
                                 >
-                                  {expandedBios[member.id] ? (
-                                    <>
-                                      Show Less <ChevronUp className="h-3 w-3 ml-1" />
-                                    </>
-                                  ) : (
-                                    <>
-                                      See More <ChevronDown className="h-3 w-3 ml-1" />
-                                    </>
-                                  )}
-                                </button>
+                                  <Linkedin className="h-4 w-4" />
+                                </Link>
                               )}
-                              <div className="flex space-x-2 mt-1">
-                                {member.socialLinks?.linkedin && (
-                                  <Link
-                                    href={member.socialLinks.linkedin}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[#405862] hover:text-[#4ecdc4] transition-colors"
-                                  >
-                                    <Linkedin className="h-4 w-4" />
-                                  </Link>
-                                )}
-                                {member.socialLinks?.instagram && (
-                                  <Link
-                                    href={member.socialLinks.instagram}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[#405862] hover:text-[#4ecdc4] transition-colors"
-                                  >
-                                    <Instagram className="h-4 w-4" />
-                                  </Link>
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
+                              {member.socialLinks?.instagram && (
+                                <Link
+                                  href={member.socialLinks.instagram}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[#405862] hover:text-[#4ecdc4] transition-colors"
+                                >
+                                  <Instagram className="h-4 w-4" />
+                                </Link>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ))}
+              
               <div className="mt-8 p-6 bg-[#4ecdc4]/10 border border-[#4ecdc4]/30 rounded-lg text-center">
-                <h3 className="text-lg font-semibold text-[#405862] mb-2">Interested in Joining Our Team?</h3>
+                <h3 className="text-lg font-semibold text-[#405862] mb-2 font-bricolage">Interested in Joining Our Team?</h3>
                 <p className="text-[#405862]/80 mb-3">
                   Check out the <span className="font-semibold text-[#4ecdc4]">Join Us</span> tab above to learn about
                   executive opportunities and apply to join our leadership team!
@@ -460,15 +615,16 @@ export default function MembersClient() {
               </div>
             </TabsContent>
 
+            {/* TAB: Advisors */}
             <TabsContent value="advisors" className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-4 text-center text-[#405862]">Medical Student Advisors</h3>
+                <h3 className="text-lg font-semibold mb-4 text-center text-[#405862] font-bricolage">Medical Student Advisors</h3>
                 <p className="text-center text-[#405862]/80 mb-6 max-w-2xl mx-auto text-sm">
                   Our medical student advisors provide valuable guidance and mentorship, helping bridge the gap between
                   high school and medical education.
                 </p>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {advisors.map((advisor) => (
+                  {advisorsList.map((advisor) => (
                     <Card
                       key={advisor.id}
                       className="overflow-hidden border-[#405862]/20 shadow-sm hover:shadow-md transition-shadow"
@@ -476,7 +632,7 @@ export default function MembersClient() {
                       <div className="bg-[#f5f1eb] flex items-center justify-center p-4">
                         <div className="relative h-32 w-32 rounded-full overflow-hidden">
                           <Image
-                            src={advisor.image || "/placeholder.svg"}
+                            src={advisor.image}
                             alt={advisor.name}
                             fill
                             className="object-cover"
@@ -484,15 +640,15 @@ export default function MembersClient() {
                         </div>
                       </div>
                       <CardContent className="p-4">
-                        <h4 className="text-base font-semibold text-[#405862]">{advisor.name}</h4>
-                        <p className="text-sm text-[#405862]/75 mb-2">{advisor.role}</p>
-                        <p className="text-sm text-[#405862] mb-3">
+                        <h4 className="text-base font-semibold text-[#405862] font-bricolage">{advisor.name}</h4>
+                        <p className="text-sm text-[#4ecdc4] font-medium mb-2">{advisor.role}</p>
+                        <p className="text-sm text-[#405862]/90 leading-relaxed mb-3">
                           {expandedBios[advisor.id] ? advisor.bio : truncateBio(advisor.bio, 120)}
                         </p>
                         {advisor.bio.length > 120 && (
                           <button
                             onClick={() => toggleBio(advisor.id)}
-                            className="text-[#405862] text-sm font-medium hover:text-[#4ecdc4] transition-colors mb-3 flex items-center"
+                            className="text-[#405862] text-sm font-semibold hover:text-[#4ecdc4] transition-colors mb-3 flex items-center"
                           >
                             {expandedBios[advisor.id] ? (
                               <>
@@ -543,7 +699,7 @@ export default function MembersClient() {
                 </div>
               </div>
               <div className="mt-8 p-6 bg-[#4ecdc4]/10 border border-[#4ecdc4]/30 rounded-lg text-center">
-                <h3 className="text-lg font-semibold text-[#405862] mb-2">Interested in Joining Our Team?</h3>
+                <h3 className="text-lg font-semibold text-[#405862] mb-2 font-bricolage">Interested in Joining Our Team?</h3>
                 <p className="text-[#405862]/80 mb-3">
                   Check out the <span className="font-semibold text-[#4ecdc4]">Join Us</span> tab above to learn about
                   executive opportunities and apply to join our leadership team!
@@ -554,71 +710,218 @@ export default function MembersClient() {
               </div>
             </TabsContent>
 
+            {/* TAB: Join Us */}
             <TabsContent value="join" className="space-y-6">
-              <div className="py-8 bg-[#f5f1eb]/50 rounded-lg text-center">
-                <div className="max-w-3xl mx-auto px-4">
-                  <h2 className="text-2xl font-bold mb-4 text-[#405862]">Join Our Executive Team</h2>
-                  <p className="mb-6 text-[#405862]/90">
-                    Applications are open year-round and reviewed on an ongoing basis. We're looking for passionate,
-                    driven students to join our leadership team and help inspire the next generation of healthcare
-                    professionals.
-                  </p>
+              
+              {/* Detailed Recruitment Intro */}
+              <div className="bg-[#f5f1eb]/40 border border-[#405862]/10 rounded-xl p-6 md:p-8 space-y-4 max-w-4xl mx-auto text-sm md:text-base text-[#405862]/90 leading-relaxed">
+                <h3 className="text-xl md:text-2xl font-bold text-[#405862] font-bricolage text-center mb-4">
+                  Join Our Executive Team
+                </h3>
+                <p>
+                  Dr. Interested is a global youth organization active in <strong>106 countries</strong>, 
+                  reaching <strong>160,000+ students</strong> worldwide. We operate fully online through Discord, 
+                  with optional in-person opportunities depending on your city.
+                </p>
+                <p>
+                  We’re recruiting across nearly every field right now — Finance, Tech, Coding, Design, 
+                  Outreach, Events, and Healthcare Careers Education. If you like building things that matter, 
+                  there’s a seat for you.
+                </p>
+                <p className="font-semibold text-[#405862]">
+                  This isn’t busywork. You’ll be part of a global team that moves fast, 
+                  leads real projects, and creates impact you can point to proudly.
+                </p>
+              </div>
 
-                  <div className="grid md:grid-cols-3 gap-4 mb-6">
-                    <Card className="border-[#405862]/20 shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-6 text-center">
-                        <h3 className="font-semibold text-[#405862] mb-3">General Executive</h3>
-                        <p className="text-sm text-[#405862]/80 mb-4">
-                          Join our core leadership team and help shape the future of Dr. Interested.
-                        </p>
-                        <Link
-                          href="https://forms.gle/e9etoCnFMPhgeujD9"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Button className="w-full bg-[#405862] hover:bg-[#334852] text-white">Apply Now</Button>
-                        </Link>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-[#405862]/20 shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-6 text-center">
-                        <h3 className="font-semibold text-[#405862] mb-3">Org Ambassador</h3>
-                        <p className="text-sm text-[#405862]/80 mb-4">
-                          Represent Dr. Interested in your community and help us grow our reach.
-                        </p>
-                        <Link href="https://forms.gle/H5jZkekPubdtwcTS6" target="_blank" rel="noopener noreferrer">
-                          <Button className="w-full bg-[#405862] hover:bg-[#334852] text-white">Apply Now</Button>
-                        </Link>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-[#405862]/20 shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-6 text-center">
-                        <h3 className="font-semibold text-[#405862] mb-3">Podcast Team</h3>
-                        <p className="text-sm text-[#405862]/80 mb-4">
-                          Help create engaging podcast content and share healthcare stories.
-                        </p>
-                        <Link href="https://forms.gle/fH2equ2mCwDX9PpH6" target="_blank" rel="noopener noreferrer">
-                          <Button className="w-full bg-[#405862] hover:bg-[#334852] text-white">Apply Now</Button>
-                        </Link>
-                      </CardContent>
-                    </Card>
+              {/* Grid: What You Get & UN / Canada Opportunities */}
+              <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto pt-4">
+                
+                {/* Benefits */}
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-base md:text-lg font-bold text-[#405862] font-bricolage mb-4 flex items-center gap-2">
+                      <Sparkles className="h-4.5 w-4.5 text-[#4ecdc4]" />
+                      What You Get
+                    </h4>
+                    <ul className="space-y-3.5">
+                      {[
+                        "Experience working with an international organization that strengthens your résumé",
+                        "Letters of recommendation from medical students",
+                        "Free tickets to represent us at conferences (merit-based)",
+                        "Verified volunteer hours",
+                        "Real skill growth in leadership, collaboration, and execution"
+                      ].map((benefit, idx) => (
+                        <li key={idx} className="flex items-start gap-2.5">
+                          <CheckCircle2 className="h-4.5 w-4.5 text-[#4ecdc4] shrink-0 mt-0.5" />
+                          <span className="text-xs md:text-sm text-[#405862]/95 font-medium">
+                            {benefit}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  <div className="text-center">
-                    <p className="text-sm text-[#405862]/80">
-                      Have questions about joining our team?{" "}
-                      <Link
-                        href="mailto:hr@drinterested.org"
-                        className="text-[#4ecdc4] hover:text-[#405862] font-medium transition-colors"
-                      >
-                        Contact us at hr@drinterested.org
-                      </Link>
+                  {/* Canada Opportunities */}
+                  <div className="p-5 bg-[#f5f1eb]/30 rounded-xl border border-[#405862]/10">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                      <h4 className="font-bold text-[#405862] font-bricolage text-sm md:text-base">
+                        Extra Opportunities <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-[#405862]/10 rounded text-[#405862] ml-1">Canada · Under 18</span>
+                      </h4>
+                      <div className="relative w-20 h-6 shrink-0">
+                        <Image src="/glocal.webp" alt="GLOCAL Foundation Logo" fill className="object-contain" />
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-[#405862]/70 mb-3 italic">
+                      Canadian youth opportunities with support from the GLOCAL Foundation of Canada.
                     </p>
+                    <ul className="space-y-2.5">
+                      {[
+                        "Apply for microgrants or travel grants to grow your ideas and showcase your work",
+                        "Access 100+ virtual workshops and in-person events every year with civic leaders and mentors across Canada",
+                        "After 120 service hours, earn a National Service Recognition Certificate signed by the Honourable Patty Hajdu, Minister of Employment, Workforce Development and Official Languages of Canada"
+                      ].map((opp, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <Award className="h-4 w-4 text-[#4ecdc4] shrink-0 mt-0.5" />
+                          <span className="text-xs text-[#405862]/95 leading-relaxed">
+                            {opp}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
+
+                {/* UN & Commitment */}
+                <div className="space-y-6">
+                  <Card className="border-[#4ecdc4]/35 bg-[#EDFAF9]/20 overflow-hidden shadow-sm">
+                    <div className="h-1 bg-[#4ecdc4] w-full" />
+                    <CardContent className="p-5 space-y-3">
+                      <span className="bg-[#4ecdc4]/20 text-[#405862] font-bold text-[10px] uppercase px-1.5 py-0.5 rounded tracking-wide inline-block">
+                        New Opportunity
+                      </span>
+                      <h4 className="text-base font-bold text-[#405862] font-bricolage flex items-center gap-2">
+                        <FileText className="h-4.5 w-4.5 text-[#4ecdc4]" />
+                        Policy & Global Research
+                      </h4>
+                      <p className="text-xs md:text-sm text-[#405862]/95 leading-relaxed">
+                        As an executive, you’ll have the opportunity to contribute directly to our policy and research reports. One of our current projects is a report for the <strong>United Nations High Commissioner on Human Rights</strong>.
+                      </p>
+                      <p className="text-xs md:text-sm text-[#405862]/95 leading-relaxed">
+                        Executives who contribute will be credited by name, and the final report will be published on the official United Nations Human Rights website.
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-[#405862]/10 bg-[#f5f1eb]/20 shadow-sm">
+                    <CardContent className="p-4 flex items-start gap-3">
+                      <Clock className="h-6 w-6 text-[#405862] shrink-0 mt-0.5" />
+                      <div>
+                        <h5 className="font-bold text-[#405862] text-xs md:text-sm font-bricolage">
+                          Time Commitment
+                        </h5>
+                        <p className="text-xs md:text-sm text-[#405862]/90 font-medium mt-0.5">
+                          6 months &bull; ~2 hours/week
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
               </div>
+
+              {/* Grid: 3 Open Application Role Cards */}
+              <div className="max-w-4xl mx-auto pt-6">
+                <div className="grid md:grid-cols-3 gap-4">
+                  
+                  {/* General Executive */}
+                  <Card className="border-[#405862]/20 hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full bg-white">
+                    <CardContent className="p-5 text-center flex flex-col flex-1 justify-between gap-5">
+                      <div>
+                        <h5 className="font-bold text-sm text-[#405862] font-bricolage">
+                          General Executive
+                        </h5>
+                        <p className="text-xs text-[#405862]/75 leading-relaxed mt-2">
+                          Join our core leadership team and help shape the future of Dr. Interested at a global scale.
+                        </p>
+                      </div>
+                      <Link
+                        href="https://forms.gle/e9etoCnFMPhgeujD9"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full"
+                      >
+                        <Button className="w-full bg-[#405862] hover:bg-[#334852] text-white py-3.5 text-xs font-semibold transition-colors">
+                          Apply Now
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+
+                  {/* Org Ambassador */}
+                  <Card className="border-[#405862]/20 hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full bg-white">
+                    <CardContent className="p-5 text-center flex flex-col flex-1 justify-between gap-5">
+                      <div>
+                        <h5 className="font-bold text-sm text-[#405862] font-bricolage">
+                          Org Ambassador
+                        </h5>
+                        <p className="text-xs text-[#405862]/75 leading-relaxed mt-2">
+                          Represent Dr. Interested in your community and help expand our impact worldwide.
+                        </p>
+                      </div>
+                      <Link
+                        href="https://forms.gle/89v6zXtrdfGvMUBJ8"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full"
+                      >
+                        <Button className="w-full bg-[#405862] hover:bg-[#334852] text-white py-3.5 text-xs font-semibold transition-colors">
+                          Apply Now
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+
+                  {/* Podcast Team */}
+                  <Card className="border-[#405862]/20 hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full bg-white">
+                    <CardContent className="p-5 text-center flex flex-col flex-1 justify-between gap-5">
+                      <div>
+                        <h5 className="font-bold text-sm text-[#405862] font-bricolage">
+                          Podcast Team
+                        </h5>
+                        <p className="text-xs text-[#405862]/75 leading-relaxed mt-2">
+                          Create engaging podcast content and amplify healthcare stories from around the world.
+                        </p>
+                      </div>
+                      <Link
+                        href="https://forms.gle/WX7P4Vypq4ZHMEEDA"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full"
+                      >
+                        <Button className="w-full bg-[#405862] hover:bg-[#334852] text-white py-3.5 text-xs font-semibold transition-colors">
+                          Apply Now
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+
+                </div>
+              </div>
+
+              {/* Questions Support footer */}
+              <div className="text-center pt-8">
+                <p className="text-xs md:text-sm text-[#405862]/80">
+                  Have questions about joining our team?{" "}
+                  <Link
+                    href="mailto:hr@drinterested.org"
+                    className="text-[#4ecdc4] hover:text-[#405862] font-semibold transition-colors underline underline-offset-4"
+                  >
+                    Contact us at hr@drinterested.org
+                  </Link>
+                </p>
+              </div>
+
             </TabsContent>
           </Tabs>
         </div>

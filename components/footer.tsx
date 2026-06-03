@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Instagram, Linkedin, ArrowUp } from "lucide-react"
 import NewsletterForm from "./newsletter-form"
+import DiscordIcon from "@/components/icons/discord-icon"
 
 export default function Footer() {
   const scrollToTop = () => {
@@ -62,22 +63,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 aria-label="Discord"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="9" cy="12" r="1" />
-                  <circle cx="15" cy="12" r="1" />
-                  <path d="M7.5 7.2c.3-.1.6-.2.8-.2h7.4c.2 0 .5.1.8.2M7.5 16.8c.3.1.6.2.8.2h7.4c.2 0 .5-.1.8-.2" />
-                  <path d="M16 3h-2a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2H4a2 2 0 0 0-2 2v3a8 8 0 0 0 4 7v3a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-3a8 8 0 0 0 4-7V5a2 2 0 0 0-2-2z" />
-                </svg>
+                <DiscordIcon className="h-5 w-5" />
               </Link>
             </div>
           </div>
@@ -121,12 +107,12 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="dr-interested-impact-report-2025 (1).pdf"
+                  href="https://impact.drinterested.org/2025/annual"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white/80 hover:text-[#4ecdc4] transition-colors"
                 >
-                  Semi-Annual Impact Report
+                  2025 Annual Impact Report
                 </Link>
               </li>
             </ul>
@@ -194,7 +180,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 pt-5 border-t border-[#4f6b75] flex flex-col md:flex-row justify-between items-center gap-3">
-          <div className="text-xs text-white/70">© 2025 Dr. Interested. All rights reserved.</div>
+          <div className="text-xs text-white/70">© 2026 Dr. Interested. All rights reserved.</div>
           <div className="flex items-center gap-3 text-xs">
             <Link href="/terms" className="text-white/70 hover:text-[#4ecdc4] transition-colors">
               Terms & Conditions

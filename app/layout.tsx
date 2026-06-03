@@ -1,3 +1,4 @@
+import AccessibilityWidget from "@/components/AccessibilityWidget";
 import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
@@ -22,6 +23,9 @@ export const metadata: Metadata = {
   description:
     'Dr. Interested supports youth in finding their unique "spark" in medicine through programs & opportunities. Earn volunteer hours while building your future!',
   keywords: [
+    "Adil Mukhi",
+    "Mississauga",
+    "Dr. Interested",
     "healthcare education",
     "medical careers",
     "high school students",
@@ -45,7 +49,6 @@ export const metadata: Metadata = {
     "doctor interest",
     "dr interested",
     "dr interest",
-    "Adil Mukhi",
     "medical students",
     "healthcare advisors",
     "impact report",
@@ -137,8 +140,22 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`
+            (function () {
+              try {
+                var root = document.documentElement;
+                var theme = localStorage.getItem('theme');
+                var useDark = theme === 'dark';
+                root.classList.remove('dark', 'light');
+                root.classList.add(useDark ? 'dark' : 'light');
+                root.style.colorScheme = useDark ? 'dark' : 'light';
+              } catch (e) {}
+            })();
+          `}
+        </Script>
         {/* Google tag (gtag.js) */}
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-6MYCRFPPGE" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -158,12 +175,14 @@ export default function RootLayout({
           href="https://www.drinterested.org/rss.xml"
         />
       </head>
-      <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+      <body className={inter.className} suppressHydrationWarning>
+        <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
+          <AccessibilityWidget />
           <SeoSchema schema={generateOrganizationSchema()} />
           <Suspense fallback={null}>
             <div className="flex min-h-screen flex-col">
               <Navbar />
+              <div className="h-16 md:hidden" aria-hidden="true" />
               <main className="flex-1">{children}</main>
               <Footer />
               <Toaster />

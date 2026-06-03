@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next"
-import { blogPosts, blogTopics } from "@/data/blog"
-import { webinars } from "@/data/webinars"
+import { supabase } from "@/lib/supabase-client"
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.drinterested.org"
   const currentDate = new Date()
 
@@ -20,10 +19,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/members/join`,
+      url: `${baseUrl}/members/apply`,
       lastModified: currentDate,
       changeFrequency: "monthly",
-      priority: 1.0,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/members`,
@@ -53,16 +52,34 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const impactReportPages: MetadataRoute.Sitemap = [
     {
-      url: "https://impact2025.drinterested.org",
+      url: "https://impact.drinterested.org",
+      lastModified: currentDate,
+      changeFrequency: "monthly",
+      priority: 1.0,
+    },
+    {
+      url: "https://impact.drinterested.org/2025/annual",
       lastModified: currentDate,
       changeFrequency: "yearly",
-      priority: 0.95,
+      priority: 0.9,
+    },
+    {
+      url: "https://impact.drinterested.org/2025/semi-annual",
+      lastModified: currentDate,
+      changeFrequency: "yearly",
+      priority: 0.8,
+    },
+    {
+      url: "https://impact.drinterested.org/2025.pdf",
+      lastModified: currentDate,
+      changeFrequency: "yearly",
+      priority: 0.7,
     },
     {
       url: `${baseUrl}/dr-interested-impact-report-2025%20(1).pdf`,
       lastModified: currentDate,
       changeFrequency: "yearly",
-      priority: 0.95,
+      priority: 0.7,
     },
   ]
 
@@ -123,27 +140,40 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
+  // Fetch blogs
+  const { data: blogs } = await supabase.from('blogs').select('slug, created_at, topic')
+  const blogTopics = [...new Set((blogs || []).map(b => b.topic).filter(Boolean))]
+
   const blogTopicPages: MetadataRoute.Sitemap = blogTopics.map((topic) => ({
-    url: `${baseUrl}/blog/topic/${topic.slug}`,
+    url: `${baseUrl}/blog/topic/${topic.toLowerCase().replace(/\s+/g, '-')}`,
     lastModified: currentDate,
     changeFrequency: "weekly" as const,
     priority: 0.65,
   }))
 
-  // Use current date for lastModified to avoid invalid date strings
-  const blogPostPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
+  const blogPostPages: MetadataRoute.Sitemap = (blogs || []).map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: currentDate,
+    lastModified: new Date(post.created_at),
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }))
 
-  // Some webinar dates include times/timezones and are not ISO. Avoid parsing.
-  const watchPages: MetadataRoute.Sitemap = webinars.map((webinar) => ({
-    url: `${baseUrl}/watch/${webinar.slug}`,
-    lastModified: currentDate,
+  // Fetch webinars
+  const { data: webinars } = await supabase.from('webinars').select('id, created_at')
+  const watchPages: MetadataRoute.Sitemap = (webinars || []).map((webinar) => ({
+    url: `${baseUrl}/watch/${webinar.id}`,
+    lastModified: new Date(webinar.created_at),
     changeFrequency: "monthly" as const,
     priority: 0.7,
+  }))
+
+  // Fetch all members from supabase
+  const { data: members } = await supabase.from('members').select('id')
+  const teamPages: MetadataRoute.Sitemap = (members || []).map((member) => ({
+    url: `${baseUrl}/team/${member.id}`,
+    lastModified: currentDate,
+    changeFrequency: "monthly" as const,
+    priority: 0.5,
   }))
 
   return [
@@ -155,5 +185,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...watchPages,
     ...blogTopicPages,
     ...blogPostPages,
+    ...teamPages,
   ]
 }

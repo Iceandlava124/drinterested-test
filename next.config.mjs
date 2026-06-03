@@ -19,15 +19,60 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+
   images: {
-    unoptimized: true,
+    formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
   },
+
+  async headers() {
+    return [
+      {
+        source: "/:all*(svg|jpg|jpeg|png|webp|gif|ico|js|css)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
+  },
+
+  async redirects() {
+    return [
+      {
+        source: "/db/apply",
+        destination: "/members/apply",
+        permanent: true,
+      },
+      {
+        source: "/db/members",
+        destination: "/members",
+        permanent: true,
+      },
+      {
+        source: "/join",
+        destination: "/members/join",
+        permanent: true,
+      },
+    ];
+  },
+
+
   experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
-}
+};
+
 
 if (userConfig) {
   // ESM imports will have a "default" property

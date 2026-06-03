@@ -5,11 +5,10 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Calendar, Clock, MapPin, AlertCircle, CheckCircle, ExternalLink, ArrowRight } from "lucide-react"
-import { upcomingEvents, pastEvents } from "@/data/events"
 import NewsletterForm from "@/components/newsletter-form"
 import { motion } from "framer-motion"
 
-export default function EventsClientPage() {
+export default function EventsClientPage({ upcomingEvents, pastEvents }: { upcomingEvents: any[], pastEvents: any[] }) {
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -27,11 +26,11 @@ export default function EventsClientPage() {
 
   return (
     <div>
-      <section className="bg-[#f5f1eb] py-10">
+      <section className="hero-section bg-[#f5f1eb] py-10 md:py-16">
         <div className="container">
           <motion.div className="text-center" initial="hidden" animate="visible" variants={fadeIn}>
-            <h1 className="text-3xl font-bold text-[#405862]">Events & Initiatives</h1>
-            <p className="text-[#405862]/80 mt-3 max-w-2xl mx-auto">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#405862]">Events & Initiatives</h1>
+            <p className="text-lg text-[#405862]/80 mt-3 max-w-2xl mx-auto">
               Join us for engaging events and initiatives designed to educate and inspire the next generation of
               healthcare professionals.
             </p>
@@ -212,7 +211,21 @@ export default function EventsClientPage() {
 
       {/* Stay Updated */}
       <section className="py-10 bg-[#405862] text-white">
-        <div className="container max-w-4xl">
+        <div className="container max-w-4xl text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-3">Stay in the Loop</h2>
+          <p className="text-white/80 mb-8 max-w-xl mx-auto">
+            Get notified about upcoming events, new initiatives, and opportunities — delivered straight to your inbox.
+          </p>
+          <div className="max-w-md mx-auto mb-6">
+            <NewsletterForm darkMode={true} showFirstName={false} compact={true} />
+          </div>
+          <p className="text-white/60 text-sm">
+            Or join our{" "}
+            <Link href="https://discord.gg/pzbGRgsGXY" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">
+              Discord community
+            </Link>{" "}
+            for real-time updates.
+          </p>
         </div>
       </section>
     </div>

@@ -37,7 +37,7 @@ import { DomainAnnouncementPopup } from "@/components/domain-announcement-popup"
     hidden: { opacity: 0, scale: 0.9 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
   }
-export default function HomePage() {
+export default function HomePage({ recentPost: passedRecentPost }: { recentPost?: any }) {
   const [isLoaded, setIsLoaded] = useState(false)
 
   // Scroll to top on page load test
@@ -51,7 +51,7 @@ export default function HomePage() {
   // Get featured blog posts
   const featuredPosts = getFeaturedPosts().slice(0, 3)
   // Get the most recent blog post
-  const recentPost = getRecentPosts(1)[0]
+  const recentPost = passedRecentPost || getRecentPosts(1)[0]
 
   // Animation variants
   const fadeIn = {

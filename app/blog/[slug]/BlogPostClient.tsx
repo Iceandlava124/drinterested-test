@@ -315,11 +315,19 @@ export default function BlogPostClient({ post, relatedPosts }: { post: BlogPost,
                     ol: ({ children }) => <ol className="list-decimal pl-6 my-4 space-y-2">{children}</ol>,
                     li: ({ children }) => <li className="text-[#405862]/90">{children}</li>,
                     p: ({ children }) => <p className="my-4 text-[#405862]/90 leading-relaxed">{children}</p>,
-                    a: ({ href, children }) => (
-                      <a href={href} className="text-[#4ecdc4] hover:text-[#405862] transition-colors font-medium">
-                        {children}
-                      </a>
-                    ),
+                    a: ({ href, children }) => {
+                      const isSafe = href && (href.startsWith("http://") || href.startsWith("https://") || href.startsWith("/") || href.startsWith("#"));
+                      return (
+                        <a 
+                          href={isSafe ? href : undefined} 
+                          className="text-[#4ecdc4] hover:text-[#405862] transition-colors font-medium"
+                          target={isSafe && href.startsWith("http") ? "_blank" : undefined}
+                          rel={isSafe && href.startsWith("http") ? "noopener noreferrer" : undefined}
+                        >
+                          {children}
+                        </a>
+                      )
+                    },
                     blockquote: ({ children }) => (
                       <blockquote className="border-l-4 border-[#4ecdc4] pl-4 italic my-4 text-[#405862]/80">
                         {children}

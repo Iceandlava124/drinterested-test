@@ -38,7 +38,6 @@ export default function MembersClient() {
   const [dbMembers, setDbMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedBios, setExpandedBios] = useState<Record<string, boolean>>({})
-  const [visibleMembers, setVisibleMembers] = useState<Record<string, boolean>>({})
 
   const params = useParams() // { tab: 'leadership' | 'departments' | 'advisors' | 'join' }
   const router = useRouter()
@@ -85,13 +84,6 @@ export default function MembersClient() {
 
   const toggleBio = (id: string) => {
     setExpandedBios((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }))
-  }
-
-  const toggleMembers = (id: string) => {
-    setVisibleMembers((prev) => ({
       ...prev,
       [id]: !prev[id],
     }))
@@ -539,84 +531,74 @@ export default function MembersClient() {
                   <div className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="text-base font-semibold text-[#405862] font-bricolage">Members</h4>
-                      <Button
-                        onClick={() => toggleMembers(department.id)}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs h-8 text-[#405862]"
-                      >
-                        {!visibleMembers[department.id] ? "Show Members" : "Hide Members"}
-                      </Button>
                     </div>
 
-                    {visibleMembers[department.id] && (
-                      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-                        {department.members.map((member) => (
-                          <Card
-                            key={member.id}
-                            className="overflow-hidden border-[#405862]/20 shadow-sm hover:shadow-md transition-shadow"
-                          >
-                            <CardContent className="p-3">
-                              <div className="flex items-center gap-2 mb-1">
-                                <div className="relative h-8 w-8 rounded-full overflow-hidden flex-shrink-0">
-                                  <Image
-                                    src={member.image}
-                                    alt={member.name}
-                                    fill
-                                    className="object-cover"
-                                  />
-                                </div>
-                                <div>
-                                  <h5 className="font-semibold text-sm text-[#405862] font-bricolage">{member.name}</h5>
-                                  <p className="text-xs text-[#405862]/75">{member.role}</p>
-                                </div>
+                    <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+                      {department.members.map((member) => (
+                        <Card
+                          key={member.id}
+                          className="overflow-hidden border-[#405862]/20 shadow-sm hover:shadow-md transition-shadow"
+                        >
+                          <CardContent className="p-3">
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="relative h-8 w-8 rounded-full overflow-hidden flex-shrink-0">
+                                <Image
+                                  src={member.image}
+                                  alt={member.name}
+                                  fill
+                                  className="object-cover"
+                                />
                               </div>
-                              <p className="text-xs text-[#405862]/90 leading-relaxed mb-1">
-                                {expandedBios[member.id] ? member.bio : truncateBio(member.bio, 60)}
-                              </p>
-                              {member.bio.length > 60 && (
-                                <button
-                                  onClick={() => toggleBio(member.id)}
-                                  className="text-[#405862] text-xs font-semibold hover:text-[#4ecdc4] transition-colors mb-1 flex items-center"
+                              <div>
+                                <h5 className="font-semibold text-sm text-[#405862] font-bricolage">{member.name}</h5>
+                                <p className="text-xs text-[#405862]/75">{member.role}</p>
+                              </div>
+                            </div>
+                            <p className="text-xs text-[#405862]/90 leading-relaxed mb-1">
+                              {expandedBios[member.id] ? member.bio : truncateBio(member.bio, 60)}
+                            </p>
+                            {member.bio.length > 60 && (
+                              <button
+                                onClick={() => toggleBio(member.id)}
+                                className="text-[#405862] text-xs font-semibold hover:text-[#4ecdc4] transition-colors mb-1 flex items-center"
+                              >
+                                {expandedBios[member.id] ? (
+                                  <>
+                                    Show Less <ChevronUp className="h-3 w-3 ml-1" />
+                                  </>
+                                ) : (
+                                  <>
+                                    See More <ChevronDown className="h-3 w-3 ml-1" />
+                                  </>
+                                )}
+                              </button>
+                            )}
+                            <div className="flex space-x-2 mt-1">
+                              {member.socialLinks?.linkedin && (
+                                <Link
+                                  href={member.socialLinks.linkedin}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[#405862] hover:text-[#4ecdc4] transition-colors"
                                 >
-                                  {expandedBios[member.id] ? (
-                                    <>
-                                      Show Less <ChevronUp className="h-3 w-3 ml-1" />
-                                    </>
-                                  ) : (
-                                    <>
-                                      See More <ChevronDown className="h-3 w-3 ml-1" />
-                                    </>
-                                  )}
-                                </button>
+                                  <Linkedin className="h-4 w-4" />
+                                </Link>
                               )}
-                              <div className="flex space-x-2 mt-1">
-                                {member.socialLinks?.linkedin && (
-                                  <Link
-                                    href={member.socialLinks.linkedin}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[#405862] hover:text-[#4ecdc4] transition-colors"
-                                  >
-                                    <Linkedin className="h-4 w-4" />
-                                  </Link>
-                                )}
-                                {member.socialLinks?.instagram && (
-                                  <Link
-                                    href={member.socialLinks.instagram}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[#405862] hover:text-[#4ecdc4] transition-colors"
-                                  >
-                                    <Instagram className="h-4 w-4" />
-                                  </Link>
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
+                              {member.socialLinks?.instagram && (
+                                <Link
+                                  href={member.socialLinks.instagram}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[#405862] hover:text-[#4ecdc4] transition-colors"
+                                >
+                                  <Instagram className="h-4 w-4" />
+                                </Link>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ))}

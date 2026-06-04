@@ -214,6 +214,16 @@ export default function MembersClient() {
     } as any
   })
 
+  console.log("DEBUG DEPARTMENTS:", {
+    deputyexecdir: typeof deputyexecdir,
+    deputyexecdirLength: deputyexecdir?.length,
+    advisorsList: typeof advisorsList,
+    advisorsListLength: advisorsList?.length,
+    departmentsList: typeof departmentsList,
+    departmentsListLength: departmentsList?.length,
+    departmentsData: departmentsList.map(d => ({ id: d.id, hasMembers: !!d.members, membersType: typeof d.members, membersCount: d.members?.length }))
+  })
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-[#405862]">
@@ -474,74 +484,81 @@ export default function MembersClient() {
                           </Card>
                         ))
                       ) : (
-                        <Card className="overflow-hidden border-[#405862]/20 shadow-sm hover:shadow-md transition-shadow">
-                          <div className="grid grid-cols-3">
-                            <div className="col-span-1 bg-[#f5f1eb]">
-                              <div className="relative h-full w-full aspect-square">
-                                <Image
-                                  src={department.director.image}
-                                  alt={department.director.name}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-                            </div>
-                            <CardContent className="col-span-2 p-3">
-                              <h5 className="font-semibold text-sm text-[#405862] font-bricolage">{department.director.name}</h5>
-                              <p className="text-xs text-[#4ecdc4] font-medium mb-1">{department.director.role}</p>
-                              <p className="text-xs text-[#405862]/90 leading-relaxed mb-1">
-                                {expandedBios[department.director.id]
-                                  ? department.director.bio
-                                  : truncateBio(department.director.bio, 80)}
-                              </p>
-                              {department.director.bio.length > 80 && (
-                                <button
-                                  onClick={() => toggleBio(department.director.id)}
-                                  className="text-[#405862] text-xs font-semibold hover:text-[#4ecdc4] transition-colors mb-1 flex items-center"
-                                >
-                                  {expandedBios[department.director.id] ? (
-                                    <>
-                                      Show Less <ChevronUp className="h-3 w-3 ml-1" />
-                                    </>
-                                  ) : (
-                                    <>
-                                      See More <ChevronDown className="h-3 w-3 ml-1" />
-                                    </>
-                                  )}
-                                </button>
-                              )}
-                              <div className="flex space-x-2">
-                                {department.director.socialLinks?.linkedin && (
-                                  <Link
-                                    href={department.director.socialLinks.linkedin}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[#405862] hover:text-[#4ecdc4] transition-colors"
-                                  >
-                                    <Linkedin className="h-4 w-4" />
-                                  </Link>
-                                )}
-                                {department.director.socialLinks?.instagram && (
-                                  <Link
-                                    href={department.director.socialLinks.instagram}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[#405862] hover:text-[#4ecdc4] transition-colors"
-                                  >
-                                    <Instagram className="h-4 w-4" />
-                                  </Link>
-                                )}
-                              </div>
-                            </CardContent>
-                          </div>
-                        </Card>
+                        <>
+                          {(() => {
+                            const director = department.director as MemberType
+                            return (
+                              <Card className="overflow-hidden border-[#405862]/20 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="grid grid-cols-3">
+                                  <div className="col-span-1 bg-[#f5f1eb]">
+                                    <div className="relative h-full w-full aspect-square">
+                                      <Image
+                                        src={director.image}
+                                        alt={director.name}
+                                        fill
+                                        className="object-cover"
+                                      />
+                                    </div>
+                                  </div>
+                                  <CardContent className="col-span-2 p-3">
+                                    <h5 className="font-semibold text-sm text-[#405862] font-bricolage">{director.name}</h5>
+                                    <p className="text-xs text-[#4ecdc4] font-medium mb-1">{director.role}</p>
+                                    <p className="text-xs text-[#405862]/90 leading-relaxed mb-1">
+                                      {expandedBios[director.id]
+                                        ? director.bio
+                                        : truncateBio(director.bio, 80)}
+                                    </p>
+                                    {director.bio.length > 80 && (
+                                      <button
+                                        onClick={() => toggleBio(director.id)}
+                                        className="text-[#405862] text-xs font-semibold hover:text-[#4ecdc4] transition-colors mb-1 flex items-center"
+                                      >
+                                        {expandedBios[director.id] ? (
+                                          <>
+                                            Show Less <ChevronUp className="h-3 w-3 ml-1" />
+                                          </>
+                                        ) : (
+                                          <>
+                                            See More <ChevronDown className="h-3 w-3 ml-1" />
+                                          </>
+                                        )}
+                                      </button>
+                                    )}
+                                    <div className="flex space-x-2">
+                                      {director.socialLinks?.linkedin && (
+                                        <Link
+                                          href={director.socialLinks.linkedin}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-[#405862] hover:text-[#4ecdc4] transition-colors"
+                                        >
+                                          <Linkedin className="h-4 w-4" />
+                                        </Link>
+                                      )}
+                                      {director.socialLinks?.instagram && (
+                                        <Link
+                                          href={director.socialLinks.instagram}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-[#405862] hover:text-[#4ecdc4] transition-colors"
+                                        >
+                                          <Instagram className="h-4 w-4" />
+                                        </Link>
+                                      )}
+                                    </div>
+                                  </CardContent>
+                                </div>
+                              </Card>
+                            )
+                          })()}
+                        </>
                       )}
                     </div>
                   </div>
 
                   <div className="p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-base font-semibold text-[#405862] font-bricolage">Members</h4>
+                      <h4 className="text-base font-semibold text-[#405862] font-bricolage"> Members</h4>
                     </div>
 
                     <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">

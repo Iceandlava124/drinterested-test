@@ -114,7 +114,7 @@ export default function MembersClient() {
     if (id === "publications") return mDept.includes("publication")
     if (id === "hr") return mDept.includes("human resources") || mDept.includes("hr")
     if (id === "events") return mDept.includes("event")
-    if (id === "grants") return mDept.includes("grant")
+    if (id === "grants") return mDept.includes("grant") || mDept.includes("finance")
     return false
   }
 
@@ -173,16 +173,6 @@ export default function MembersClient() {
       ...(staticDept.coordinators || []),
     ]
 
-    if (deptMembers.length === 0) {
-      return {
-        id: staticDept.id,
-        name: staticDept.name,
-        description: staticDept.description,
-        director: staticDept.director,
-        members: staticGeneralMembers,
-      } as any
-    }
-
     // Directors (role contains director or lead)
     const rawDirs = deptMembers.filter((m) => (m.role || "").toLowerCase().includes("director"))
     const directors: MemberType[] = rawDirs.map((dir) => ({
@@ -194,7 +184,7 @@ export default function MembersClient() {
       socialLinks: dir.socials || {},
     }))
 
-    // General members
+    // General members (excluding directors)
     const rawMems = deptMembers.filter((m) => !(m.role || "").toLowerCase().includes("director"))
     const members: MemberType[] = rawMems.map((mem) => ({
       id: mem.id,
@@ -205,12 +195,29 @@ export default function MembersClient() {
       socialLinks: mem.socials || {},
     }))
 
+    // Determine the directors to display (db directors or fallback to static)
+    const finalDirectors = directors.length > 0 ? (directors.length === 1 ? directors[0] : directors) : staticDept.director
+    const finalDirectorsList = Array.isArray(finalDirectors) ? finalDirectors : (finalDirectors ? [finalDirectors] : [])
+
+    // Merge database general members with static general members, deduplicating by name/id
+    const mergedGeneral = [
+      ...members,
+      ...staticGeneralMembers.filter(
+        (sm) => !members.some((m) => m.id === sm.id || m.name.toLowerCase() === sm.name.toLowerCase())
+      )
+    ]
+
+    // Filter out any general members that are already listed as directors (either in DB or static)
+    const finalMembers = mergedGeneral.filter(
+      (m) => !finalDirectorsList.some((d) => d.id === m.id || d.name.toLowerCase() === m.name.toLowerCase())
+    )
+
     return {
       id: staticDept.id,
       name: staticDept.name,
       description: staticDept.description,
-      director: directors.length > 0 ? (directors.length === 1 ? directors[0] : directors) : staticDept.director,
-      members: members.length > 0 ? members : staticGeneralMembers,
+      director: finalDirectors,
+      members: finalMembers,
     } as any
   })
 

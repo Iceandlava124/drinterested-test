@@ -146,7 +146,8 @@ const AccessibilityWidget = () => {
 
     const applyImageVisibility = () => {
       const images = document.querySelectorAll('img, video, iframe');
-      images.forEach((el) => {
+      images.forEach((element) => {
+        const el = element as HTMLElement;
         el.style.opacity = settings.hideImages ? '0' : '';
         el.style.pointerEvents = settings.hideImages ? 'none' : '';
       });
@@ -154,7 +155,8 @@ const AccessibilityWidget = () => {
 
     const applyMediaFilters = () => {
       const mediaElements = document.querySelectorAll('img, video, iframe');
-      mediaElements.forEach((el) => {
+      mediaElements.forEach((element) => {
+        const el = element as HTMLElement;
         if (filters.length > 0) {
           const counterFilters = [];
           if (settings.invertColors) counterFilters.push('invert(1)');
@@ -169,7 +171,8 @@ const AccessibilityWidget = () => {
 
     const updateLinks = () => {
       const allLinks = document.querySelectorAll('a');
-      allLinks.forEach((link) => {
+      allLinks.forEach((element) => {
+        const link = element as HTMLAnchorElement;
         if (
           link.closest('.accessibility-menu') ||
           link.closest('.accessibility-button')
@@ -228,18 +231,18 @@ const AccessibilityWidget = () => {
     };
 
     setIsSmallScreen(mediaQuery.matches);
-    if (mediaQuery.addEventListener) {
+    if (typeof mediaQuery.addEventListener === 'function') {
       mediaQuery.addEventListener('change', handleChange);
     } else {
-      mediaQuery.addListener(handleChange);
+      (mediaQuery as any).addListener(handleChange);
     }
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (mediaQuery.addEventListener) {
+      if (typeof mediaQuery.removeEventListener === 'function') {
         mediaQuery.removeEventListener('change', handleChange);
       } else {
-        mediaQuery.removeListener(handleChange);
+        (mediaQuery as any).removeListener(handleChange);
       }
     };
   }, []);
@@ -267,7 +270,9 @@ const AccessibilityWidget = () => {
     setSettings(prev => (prev.darkMode === shouldBeDark ? prev : { ...prev, darkMode: shouldBeDark }));
   }, [isMounted, resolvedTheme]);
 
-  const toggleSetting = (key) => {
+  type BooleanSettings = 'hideImages' | 'invertColors' | 'darkMode' | 'grayscale' | 'contrast' | 'readingGuide' | 'highlightLinks';
+
+  const toggleSetting = (key: BooleanSettings) => {
     if (key === 'darkMode') {
       const nextDarkMode = !isDarkMode;
       setTheme(nextDarkMode ? 'dark' : 'light');
@@ -278,7 +283,7 @@ const AccessibilityWidget = () => {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const adjustValue = (key, value) => {
+  const adjustValue = (key: 'textSize' | 'cursorSize', value: number) => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
@@ -289,11 +294,12 @@ const AccessibilityWidget = () => {
     }
   };
 
-  const handleMouseDown = (e) => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isSmallScreen) {
       return;
     }
-    if (e.target.closest('.accessibility-button') && !e.target.closest('.accessibility-menu')) {
+    const target = e.target as HTMLElement;
+    if (target.closest('.accessibility-button') && !target.closest('.accessibility-menu')) {
       setIsDragging(true);
       setDragOffset({
         x: e.clientX - position.x,
@@ -302,7 +308,7 @@ const AccessibilityWidget = () => {
     }
   };
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: MouseEvent) => {
     if (isDragging) {
       setPosition(
         clampPosition(
@@ -341,7 +347,7 @@ const AccessibilityWidget = () => {
   const [guideY, setGuideY] = useState(0);
 
   useEffect(() => {
-    const handleMouseMoveGuide = (e) => {
+    const handleMouseMoveGuide = (e: MouseEvent) => {
       if (settings.readingGuide) {
         setGuideY(e.clientY);
       }

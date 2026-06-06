@@ -134,6 +134,30 @@ export default function DbApplyPage() {
     setMessage(null)
 
     const formData = new FormData(e.currentTarget)
+
+    // Server-side length validation
+    const nameVal = formData.get("name") as string
+    const bioVal = formData.get("bio") as string
+    if (nameVal.trim().length < 2) {
+      setMessage({ type: "error", text: "Full name must be at least 2 characters." })
+      setLoading(false)
+      return
+    }
+    if (nameVal.length > 100) {
+      setMessage({ type: "error", text: "Full name must be under 100 characters." })
+      setLoading(false)
+      return
+    }
+    if (bioVal.trim().length < 10) {
+      setMessage({ type: "error", text: "Bio must be at least 10 characters." })
+      setLoading(false)
+      return
+    }
+    if (bioVal.length > 2000) {
+      setMessage({ type: "error", text: "Bio must be under 2000 characters." })
+      setLoading(false)
+      return
+    }
     
     if (!finalCroppedFile) {
       setMessage({ type: "error", text: "Please select and crop a profile image" })
@@ -149,7 +173,8 @@ export default function DbApplyPage() {
 
     let imageUrl = ""
     try {
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`
+      // crypto.randomUUID() is cryptographically secure — makes storage URLs unguessable
+      const fileName = `${crypto.randomUUID()}.webp`
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("avatar")
@@ -177,6 +202,8 @@ export default function DbApplyPage() {
 
     const newMember = {
       name: formData.get("name") as string,
+      email: (formData.get("email") as string).trim().toLowerCase(),
+      discord_username: (formData.get("discord_username") as string).trim(),
       role: finalRole,
       department: formData.get("department") as string,
       bio: formData.get("bio") as string,
@@ -205,6 +232,20 @@ export default function DbApplyPage() {
       const { error } = await supabase.from("members").insert([newMember])
 
       if (error) throw error
+
+      // Securely trigger the Discord webhook notification via our Next.js API route
+      try {
+        await fetch("/api/members/apply/notify", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newMember),
+        })
+      } catch (notifyErr) {
+        // Log notification error but don't fail the user application submission UX
+        console.error("Discord notification failed to send:", notifyErr)
+      }
 
       setMessage({ type: "success", text: "✓ Application submitted successfully! We'll review it soon." })
       ;(e.target as HTMLFormElement).reset()
@@ -278,6 +319,29 @@ export default function DbApplyPage() {
             type="text"
             id="name"
             name="name"
+            required
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF7D] focus:border-transparent transition-all"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="email" className="block font-medium mb-1 text-[#1a1a1a]">Email Address *</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF7D] focus:border-transparent transition-all"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="discord_username" className="block font-medium mb-1 text-[#1a1a1a]">Discord Username *</label>
+          <input
+            type="text"
+            id="discord_username"
+            name="discord_username"
+            placeholder="e.g. username"
             required
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF7D] focus:border-transparent transition-all"
           />

@@ -3,27 +3,43 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { blogPosts, blogTopics, type BlogPost, type BlogTopic } from "@/data/blog"
+import { blogTopics, type BlogTopic } from "@/data/blog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Clock, ChevronLeft, ChevronRight } from "lucide-react"
 import ScrollToTop from "@/components/scroll-to-top"
 
-interface BlogTopicClientPageProps {
+type BlogPost = {
   slug: string
+  title: string
+  excerpt: string
+  coverImage: string
+  topic: string
+  readingTime: string
+  date: string
+  author: {
+    name: string
+    image: string
+    bio?: string
+    linkedIn?: string
+    twitter?: string
+    instagram?: string
+  }
 }
 
-export default function BlogTopicClientPage({ slug }: BlogTopicClientPageProps) {
+interface BlogTopicClientPageProps {
+  slug: string
+  initialPosts: BlogPost[]
+}
+
+export default function BlogTopicClientPage({ slug, initialPosts }: BlogTopicClientPageProps) {
   const [topic, setTopic] = useState<BlogTopic | null>(null)
-  const [posts, setPosts] = useState<BlogPost[]>([])
 
   useEffect(() => {
     const currentTopic = blogTopics.find((t) => t.slug === slug)
     if (currentTopic) {
       setTopic(currentTopic)
-      setPosts(blogPosts.filter((post) => post.topic === currentTopic.name))
     }
-
     window.scrollTo(0, 0)
   }, [slug])
 
@@ -68,7 +84,7 @@ export default function BlogTopicClientPage({ slug }: BlogTopicClientPageProps) 
             <div className="w-24 h-1 bg-[#4ecdc4] mt-2"></div>
           </h2>
 
-          {posts.length === 0 ? (
+          {initialPosts.length === 0 ? (
             <div className="text-center py-12">
               <h3 className="text-xl font-medium text-[#405862] mb-2">No articles found</h3>
               <p className="text-[#405862]/70 mb-6">We're working on adding content to this topic</p>
@@ -78,7 +94,7 @@ export default function BlogTopicClientPage({ slug }: BlogTopicClientPageProps) 
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {posts.map((post, index) => (
+              {initialPosts.map((post, index) => (
                 <Card
                   key={index}
                   className="overflow-hidden border-[#405862]/20 hover:shadow-lg transition-all duration-300 hover:border-[#405862] flex flex-col h-full group"

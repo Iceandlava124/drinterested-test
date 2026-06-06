@@ -3,13 +3,14 @@ import { notFound } from "next/navigation"
 import BlogPostClient from "./BlogPostClient"
 import { Metadata } from "next"
 
-export const revalidate = 0;
+export const revalidate = 3600; // Revalidate blog posts every hour — they rarely change after publish
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
   const { data: blog } = await supabase
     .from("blogs")
     .select("title, excerpt, cover_image")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .single()
 
   if (!blog) {
@@ -25,7 +26,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
 
   const { data: post, error } = await supabase
     .from("blogs")
@@ -38,7 +40,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
         socials
       )
     `)
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .single()
 
   if (error || !post) {

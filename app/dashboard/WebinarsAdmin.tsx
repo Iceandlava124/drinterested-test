@@ -196,7 +196,7 @@ export default function WebinarsAdmin() {
           {webinars.map((webinar) => (
             <div key={webinar.id} className="bg-white border rounded-xl overflow-hidden flex flex-col">
               <div className="h-40 bg-gray-100 relative">
-                <img src={webinar.image} className="w-full h-full object-cover" alt="" />
+                <img src={webinar.image} className="w-full h-full object-cover" alt={webinar.title} />
                 <span className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded capitalize">{webinar.status}</span>
               </div>
               <div className="p-4 flex flex-col flex-grow">

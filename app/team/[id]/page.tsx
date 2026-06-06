@@ -16,9 +16,10 @@ export const revalidate = 3600 // revalidate every hour
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }): Promise<Metadata> {
-  const { data: member } = await supabase.from('members').select('*').eq('id', params.id).single()
+  const { id } = await params
+  const { data: member } = await supabase.from('members').select('*').eq('id', id).single()
 
   if (!member) {
     return {
@@ -63,8 +64,9 @@ export async function generateMetadata({
   }
 }
 
-export default async function MemberPage({ params }: { params: { id: string } }) {
-  const { data: member } = await supabase.from('members').select('*').eq('id', params.id).single()
+export default async function MemberPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const { data: member } = await supabase.from('members').select('*').eq('id', id).single()
 
   if (!member) {
     notFound()
@@ -114,6 +116,7 @@ export default async function MemberPage({ params }: { params: { id: string } })
                   src={member.image || "/logo.png"}
                   alt={member.name}
                   fill
+                  sizes="(max-width: 768px) 224px, 256px"
                   className="object-cover"
                 />
               </div>

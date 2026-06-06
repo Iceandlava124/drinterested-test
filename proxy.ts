@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
  * Serves as both the router redirect tool (for /team routes) and the server-side
  * admin session gatekeeper (gatekeeping /dashboard routes).
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Team redirects

@@ -30,7 +30,7 @@ type DepartmentType = {
   id: string
   name: string
   description: string
-  director: MemberType | MemberType[]
+  director: MemberType[]
   members: MemberType[]
 }
 
@@ -55,7 +55,7 @@ export default function MembersClient() {
       try {
         const { data, error } = await supabase
           .from("members")
-          .select("*")
+          .select("id, name, role, department, bio, image, socials")
           .eq("approved", true)
           .order("created_at", { ascending: true })
 
@@ -202,14 +202,6 @@ export default function MembersClient() {
     (dept) => (dept.director && dept.director.length > 0) || (dept.members && dept.members.length > 0)
   )
 
-  console.log("DEBUG DEPARTMENTS:", {
-    deputyexecdir: typeof deputyexecdir,
-    deputyexecdirLength: deputyexecdir?.length,
-    advisorsList: typeof advisorsList,
-    advisorsListLength: advisorsList?.length,
-    visibleDepartmentsCount: visibleDepartments.length,
-    departmentsData: visibleDepartments.map(d => ({ id: d.id, hasMembers: !!d.members, membersType: typeof d.members, membersCount: d.members?.length }))
-  })
 
   if (loading) {
     return (

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase-client"
-import { Loader2 } from "lucide-react"
+import { Loader2, X } from "lucide-react"
+import Link from "next/link"
 import EventsAdmin from "./EventsAdmin"
 import WebinarsAdmin from "./WebinarsAdmin"
 import ReactMarkdown from "react-markdown"
@@ -133,6 +134,10 @@ export default function DbAdminPage() {
     if (error) {
       setAuthError(true)
     } else {
+      // Set an httpOnly-equivalent session cookie consumed by middleware.ts.
+      // This is a defence-in-depth layer — Supabase RLS is still the
+      // primary security gate on every DB operation.
+      document.cookie = "admin-session=authenticated; path=/; SameSite=Strict; Secure"
       setEmail("")
       setPassword("")
     }
@@ -140,6 +145,8 @@ export default function DbAdminPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
+    // Clear the session cookie so middleware redirects on next /admin visit
+    document.cookie = "admin-session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict; Secure"
     setIsAuthenticated(false)
   }
 
@@ -301,8 +308,8 @@ export default function DbAdminPage() {
   const handleDeleteBlog = async (id: string) => {
     if (!confirm("Are you sure you want to delete this blog? This will also delete any uploaded cover image.")) return
     try {
-      // Fetch blog data before deleting to get the cover image URL
-      const { data: blogData } = await supabase.from("blogs").select("cover_image").eq("id", id).single()
+      // Use maybeSingle() so a double-delete race condition doesn't throw
+      const { data: blogData } = await supabase.from("blogs").select("cover_image").eq("id", id).maybeSingle()
       const { error } = await supabase.from("blogs").delete().eq("id", id)
       if (error) throw error
 
@@ -322,7 +329,14 @@ export default function DbAdminPage() {
   if (!isAuthenticated) {
     return (
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl p-8 w-full max-w-sm shadow-[0_10px_40px_rgba(0,0,0,0.1)]">
+        <div className="bg-white rounded-xl p-8 w-full max-w-sm shadow-[0_10px_40px_rgba(0,0,0,0.1)] relative">
+          <Link
+            href="/"
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5" />
+          </Link>
           <h2 className="text-2xl font-bold font-bricolage mb-6 text-[#1a1a1a]">Admin Login</h2>
           
           {authError && (

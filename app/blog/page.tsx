@@ -10,7 +10,7 @@ export const metadata: Metadata = generateSeoMetadata({
   description:
     "Explore articles on healthcare careers, medical advancements, and educational opportunities for high school students interested in medicine. Find resources for volunteer hours and healthcare education.",
   url: "https://www.drinterested.org/blog",
-  tags: [
+  keywords: [
     "healthcare blog",
     "medical education",
     "high school healthcare",
@@ -36,7 +36,7 @@ export default async function BlogPage() {
     `)
     .order("created_at", { ascending: false })
 
-  let formattedBlogs = []
+  let formattedBlogs: any[] = []
   
   if (!blogsError && blogsData) {
     // Map database shape to the shape expected by BlogClientPage
@@ -62,8 +62,8 @@ export default async function BlogPage() {
           name: authorData.name || "Unknown Author",
           image: authorData.image || "/logo.png",
           bio: authorData.bio || "",
-          linkedIn: authorData.socials?.linkedin || "",
-          twitter: authorData.socials?.github || "", // Twitter was mapped to github previously
+          linkedIn:  authorData.socials?.linkedin || "",
+          twitter:   authorData.socials?.twitter   || "",
           instagram: authorData.socials?.instagram || "",
         }
       }

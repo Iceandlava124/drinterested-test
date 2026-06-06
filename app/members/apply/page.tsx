@@ -134,6 +134,30 @@ export default function DbApplyPage() {
     setMessage(null)
 
     const formData = new FormData(e.currentTarget)
+
+    // Server-side length validation
+    const nameVal = formData.get("name") as string
+    const bioVal = formData.get("bio") as string
+    if (nameVal.trim().length < 2) {
+      setMessage({ type: "error", text: "Full name must be at least 2 characters." })
+      setLoading(false)
+      return
+    }
+    if (nameVal.length > 100) {
+      setMessage({ type: "error", text: "Full name must be under 100 characters." })
+      setLoading(false)
+      return
+    }
+    if (bioVal.trim().length < 10) {
+      setMessage({ type: "error", text: "Bio must be at least 10 characters." })
+      setLoading(false)
+      return
+    }
+    if (bioVal.length > 2000) {
+      setMessage({ type: "error", text: "Bio must be under 2000 characters." })
+      setLoading(false)
+      return
+    }
     
     if (!finalCroppedFile) {
       setMessage({ type: "error", text: "Please select and crop a profile image" })
@@ -149,7 +173,8 @@ export default function DbApplyPage() {
 
     let imageUrl = ""
     try {
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`
+      // crypto.randomUUID() is cryptographically secure — makes storage URLs unguessable
+      const fileName = `${crypto.randomUUID()}.webp`
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("avatar")

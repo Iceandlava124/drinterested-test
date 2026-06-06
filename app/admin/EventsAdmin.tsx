@@ -196,7 +196,7 @@ export default function EventsAdmin() {
           {events.map((event) => (
             <div key={event.id} className="bg-white border rounded-xl overflow-hidden flex flex-col">
               <div className="h-40 bg-gray-100 relative">
-                <img src={event.image} className="w-full h-full object-cover" alt="" />
+                <img src={event.image} className="w-full h-full object-cover" alt={event.title} />
                 {event.is_past && <span className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">Past</span>}
               </div>
               <div className="p-4 flex flex-col flex-grow">

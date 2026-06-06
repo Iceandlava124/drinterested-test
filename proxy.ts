@@ -1,9 +1,15 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+/**
+ * Combined proxy rules for Dr. Interested.
+ * Serves as both the router redirect tool (for /team routes) and the server-side
+ * admin session gatekeeper (gatekeeping /admin routes).
+ */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // 1. Team redirects
   if (pathname === "/team" || pathname === "/team/") {
     const url = request.nextUrl.clone();
     url.pathname = "/teams";
@@ -16,9 +22,27 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // 2. Server-side admin route protection (defense-in-depth)
+  if (pathname.startsWith("/admin")) {
+    const adminSession = request.cookies.get("admin-session")?.value;
+    const isLoginFlow = request.nextUrl.searchParams.get("login") === "true";
+
+    if (!adminSession || adminSession !== "authenticated") {
+      // Allow access to /admin if explicitly entering the login flow
+      if (isLoginFlow && pathname === "/admin") {
+        return NextResponse.next();
+      }
+
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      url.searchParams.set("auth", "required");
+      return NextResponse.redirect(url);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/team", "/team/:path*"],
+  matcher: ["/team", "/team/:path*", "/admin/:path*"],
 };

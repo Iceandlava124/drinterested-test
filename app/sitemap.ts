@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next"
 import { supabase } from "@/lib/supabase-client"
+import { blogTopics } from "@/data/blog"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.drinterested.org"
@@ -140,12 +141,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // Fetch blogs
-  const { data: blogs } = await supabase.from('blogs').select('slug, created_at, topic')
-  const blogTopics = [...new Set((blogs || []).map(b => b.topic).filter(Boolean))]
+  // Fetch blogs (only need slug and created_at for the blog post pages)
+  const { data: blogs } = await supabase.from('blogs').select('slug, created_at')
 
+  // Blog topic pages — derived from static slugs (guaranteed to match actual routes)
   const blogTopicPages: MetadataRoute.Sitemap = blogTopics.map((topic) => ({
-    url: `${baseUrl}/blog/topic/${topic.toLowerCase().replace(/\s+/g, '-')}`,
+    url: `${baseUrl}/blog/topic/${topic.slug}`,
     lastModified: currentDate,
     changeFrequency: "weekly" as const,
     priority: 0.65,

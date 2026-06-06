@@ -183,7 +183,7 @@ export default function Footer() {
           <div className="text-xs text-white/70">© 2026 Dr. Interested. All rights reserved.</div>
           <div className="flex items-center gap-3 text-xs">
             <Link
-              href="/admin"
+              href="/admin?login=true"
               className="bg-[#4f6b75] hover:bg-[#4ecdc4] hover:text-[#405862] text-white px-2.5 py-1 rounded transition-all font-medium"
             >
               Admin Dashboard
